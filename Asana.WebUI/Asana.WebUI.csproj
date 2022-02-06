@@ -10,4 +10,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Asana.Application\Asana.Application.csproj" />
+    <ProjectReference Include="..\Asana.Infrastructure\Asana.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
