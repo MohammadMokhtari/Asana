@@ -25,7 +25,18 @@ namespace Asana.WebUI
 
             services.AddApplication();
 
-           
+
+            services.AddCors(option =>
+            {
+                option.AddPolicy("asanaClientApp", builder => {
+                    builder.WithOrigins("http://localhost:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    ;
+                    
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -40,6 +51,7 @@ namespace Asana.WebUI
 
             app.UseRouting();
 
+            app.UseCors("asanaClientApp");
 
             app.UseAuthentication();
             app.UseAuthorization();
