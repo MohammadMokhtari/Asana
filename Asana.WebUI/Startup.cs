@@ -34,9 +34,17 @@ namespace Asana.WebUI
             {
                 app.UseDeveloperExceptionPage();
             }
-          
+
+
+            app.UseStaticFiles();
+
             app.UseRouting();
-         
+
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
