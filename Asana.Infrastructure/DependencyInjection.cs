@@ -74,6 +74,7 @@ namespace Asana.Infrastructure
             #endregion
 
             services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<IUserService, UserService>();
 
             services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Email));
 
