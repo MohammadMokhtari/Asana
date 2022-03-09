@@ -24,6 +24,8 @@ namespace Asana.WebUI
             services.AddInfrastructure(Configuration);
 
             services.AddApplication();
+
+           
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -37,6 +39,7 @@ namespace Asana.WebUI
          
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
             });
         }
     }
