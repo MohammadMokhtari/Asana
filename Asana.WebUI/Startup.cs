@@ -25,6 +25,7 @@ namespace Asana.WebUI
 
             services.AddApplication();
 
+            services.AddControllers().AddFluentValidation(x => x.AutomaticValidationEnabled = false);
 
             services.AddCors(option =>
             {
