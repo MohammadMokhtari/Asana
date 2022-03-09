@@ -44,5 +44,40 @@ namespace Asana.Application.Common.Validations
         }
     }
 
+    public class ForgotPasswordDTOValidation : AbstractValidator<ForgotPasswordDTO>
+    {
+        public ForgotPasswordDTOValidation()
+        {
+            RuleFor(f=>f.Email)
+                .NotEmpty()
+                .WithMessage(" لطفا ایمیل خود را وارد کنید ")
+                .EmailAddress()
+                .WithMessage(" ایمیل وارد شده معتبر نمی باشد ");
+        }
+    }
 
+    public class ResetPasswordDTOValidator : AbstractValidator<ResetPasswordDTO>
+    {
+        public ResetPasswordDTOValidator()
+        {
+            RuleFor(p => p.Email)
+               .NotEmpty()
+               .WithMessage(" لطفا ایمیل خود را وارد کنید ")
+               .EmailAddress()
+               .WithMessage(" ایمیل وارد شده معتبر نمی باشد ");
+
+            RuleFor(p => p.Password)
+              .NotEmpty()
+           .WithMessage(" لطفا کلمه عبور خود را وارد کنید ")
+           .MinimumLength(6)
+           .WithMessage(" کلمه عبور باید حداقل 6 کارکتر باشد ");
+
+            RuleFor(p => p.ConfirmPassword)
+                .Equal(u => u.Password)
+                .WithMessage(" کلمه های عبور یکسان نیستند ");
+
+            RuleFor(p => p.Code)
+                .NotEmpty();
+        }
+    }
 }
