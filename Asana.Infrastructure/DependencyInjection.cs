@@ -72,6 +72,11 @@ namespace Asana.Infrastructure
                 });
 
             #endregion
+
+            services.AddScoped<IEmailSender, EmailSender>();
+
+            services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Email));
+
             return services;
         }
     }
