@@ -141,7 +141,11 @@ namespace Asana.Infrastructure.Identity
             if (result.Succeeded)
             {
 
-                await _userManager.AddToRoleAsync(user, "User");
+               var roleResult =  await _userManager.AddToRoleAsync(user, "User");
+                if (!roleResult.Succeeded)
+                {
+                    return result.ToApplicationResult();
+                }
 
                 _logger.LogInformation("User created a new account with password.");
 
