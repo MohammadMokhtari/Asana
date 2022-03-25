@@ -39,14 +39,14 @@ namespace Asana.Infrastructure.Identity
         public async Task<Result> ConfirmEmailAsync(string token, string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
-            {
-                token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
-                var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (user == null)
+                return Result.Failure(new string[] {"USER_NOT_FOUND"});
+            
+            token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+            
+            var result = await _userManager.ConfirmEmailAsync(user, token);
 
-                return result.ToApplicationResult();
-            }
-            return Result.Failure(new string[] { "USER_NOT_FOUND" });
+            return result.ToApplicationResult();
         }
 
         public async Task<Result> ForgotPasswordAsync(string email)
@@ -68,7 +68,7 @@ namespace Asana.Infrastructure.Identity
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["code"] = code;
-            uriBuilder.Query = query.ToString();
+            uriBuilder.Query = query.ToString()!;
 
             var urlString = uriBuilder.ToString();
 
@@ -76,7 +76,7 @@ namespace Asana.Infrastructure.Identity
                    new List<string>() { user.Email },
                    " تغیر کلمه عبور ", urlString);
 
-            await _emailSender.SendEmailAsync(emailMessage, EmailType.resetPassword);
+            await _emailSender.SendEmailAsync(emailMessage, EmailType.ResetPassword);
 
             return Result.Success();
         }
@@ -93,7 +93,7 @@ namespace Asana.Infrastructure.Identity
             });
         }
 
-        public async Task<Result> LoginAsync(UserLoginDTO userLogin)
+        public async Task<Result> LoginAsync(UserLoginDto userLogin)
         {
             var user = await _userManager.FindByEmailAsync(userLogin.Email);
 
@@ -116,7 +116,7 @@ namespace Asana.Infrastructure.Identity
 
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            var token = GenrateJWTToken(user, userRoles.FirstOrDefault());
+            var token = GenrateJwtToken(user, userRoles.FirstOrDefault());
 
             return Result.Success(
                 new
@@ -132,7 +132,7 @@ namespace Asana.Infrastructure.Identity
 
         }
 
-        public async Task<Result> RegisterAsync(UserRegisterDTO userRegister)
+        public async Task<Result> RegisterAsync(UserRegisterDto userRegister)
         {
 
             var user = new ApplicationUser() { UserName = userRegister.Email, Email = userRegister.Email };
@@ -153,7 +153,7 @@ namespace Asana.Infrastructure.Identity
                 var query = HttpUtility.ParseQueryString(uriBuilder.Query);
                 query["Token"] = token;
                 query["UserId"] = user.Id.ToString();
-                uriBuilder.Query = query.ToString();
+                uriBuilder.Query = query.ToString()!;
 
                 var urlString = uriBuilder.ToString();
 
@@ -161,33 +161,33 @@ namespace Asana.Infrastructure.Identity
                     new List<string>() { userRegister.Email },
                     " فعال سازی حساب کاربری ", urlString);
 
-                await _emailSender.SendEmailAsync(emailMessage, EmailType.verifiedEmail);
+                await _emailSender.SendEmailAsync(emailMessage, EmailType.VerifiedEmail);
             }
             else
             {
-                _logger.LogError("Cant Created a new user ");
+                _logger.LogError("Can not Created a new user");
             }
 
             return result.ToApplicationResult();
         }
 
-        public async Task<Result> ResetPasswordAsync(ResetPasswordDTO passwordDTO)
+        public async Task<Result> ResetPasswordAsync(ResetPasswordDto passwordDto)
         {
-             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(passwordDTO.Code));
+             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(passwordDto.Code));
 
-            var user = await _userManager.FindByEmailAsync(passwordDTO.Email);
+            var user = await _userManager.FindByEmailAsync(passwordDto.Email);
 
             if(user == null)
             {
                 return Result.Failure(new string[] {"USER_NOT_FOUND"});
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, code, passwordDTO.Password);
+            var result = await _userManager.ResetPasswordAsync(user, code, passwordDto.Password);
 
             return result.ToApplicationResult();
         }
 
-        private string GenrateJWTToken(ApplicationUser user, string userRole)
+        private string GenrateJwtToken(ApplicationUser user, string userRole)
         {
             var claims = new[] {
             new Claim(ClaimTypes.Name, user.UserName),
