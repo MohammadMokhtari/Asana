@@ -34,7 +34,7 @@ namespace Asana.Infrastructure.Services
 
         public async Task SendEmailAsync(EmailMessage emailMessage , EmailType type)
         {
-            var message = CreateEmailMessage(emailMessage,type);
+            var message = await CreateEmailMessageAsync(emailMessage,type);
             await SendAsync(message);
         }
 
@@ -50,14 +50,14 @@ namespace Asana.Infrastructure.Services
             var messageBody = "";
             switch(type)
             {
-                case EmailType.verifiedEmail:
+                case EmailType.VerifiedEmail:
                      messageBody = CreateEmailContent(message.Content, "verifiedEmail.html");
 
                   emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html) 
                   { Text = messageBody }; 
                     break;
 
-                case EmailType.resetPassword:
+                case EmailType.ResetPassword:
 
                      messageBody = CreateEmailContent(message.Content, "resetPassword.html");
 
@@ -66,6 +66,35 @@ namespace Asana.Infrastructure.Services
                     break;
             }
             
+            return emailMessage;
+        }
+
+        private async Task<MimeMessage> CreateEmailMessageAsync(EmailMessage message, EmailType type)
+        {
+            var emailMessage = new MimeMessage();
+            emailMessage.From.Add(new MailboxAddress(_emailConfig.Name, _emailConfig.From));
+            emailMessage.To.AddRange(message.To);
+            emailMessage.Subject = message.Subject;
+
+            var messageBody = "";
+            switch (type)
+            {
+                case EmailType.VerifiedEmail:
+                    messageBody =await CreateEmailContentAsync(message.Content, "verifiedEmail.html");
+
+                    emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                    { Text = messageBody };
+                    break;
+
+                case EmailType.ResetPassword:
+
+                    messageBody =await CreateEmailContentAsync(message.Content, "resetPassword.html");
+
+                    emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                    { Text = messageBody };
+                    break;
+            }
+
             return emailMessage;
         }
 
@@ -87,6 +116,27 @@ namespace Asana.Infrastructure.Services
                 builder.HtmlBody = stream.ReadToEnd();
             }
             string messageBody = string.Format(builder.HtmlBody,Link);
+
+            return messageBody;
+        }
+
+        private async Task<string> CreateEmailContentAsync(string Link, string templateName)
+        {
+            var templatePath = _env.WebRootPath
+                + Path.DirectorySeparatorChar.ToString()
+                + "templates"
+                + Path.DirectorySeparatorChar.ToString()
+                + "EmailTemplate"
+                + Path.DirectorySeparatorChar.ToString()
+                + templateName;
+
+            var builder = new BodyBuilder();
+
+            using (var stream = new StreamReader(templatePath))
+            {
+                builder.HtmlBody = await stream.ReadToEndAsync();
+            }
+            string messageBody = string.Format(builder.HtmlBody, Link);
 
             return messageBody;
         }
