@@ -8,8 +8,7 @@ namespace Asana.Application.Common.Enums
 {
     public enum EmailType
     {
-       verifiedEmail ,
-       resetPassword ,
-
+        VerifiedEmail,
+        ResetPassword,
     }
 }
