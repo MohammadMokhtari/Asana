@@ -22,7 +22,7 @@ namespace Asana.Infrastructure.Persistence.Context
 
             #region Identity Configuration
 
-            builder.Entity<IdentityUser>(b =>
+            builder.Entity<ApplicationUser>(b =>
             {
                 b.ToTable("Users");
             });
@@ -42,7 +42,7 @@ namespace Asana.Infrastructure.Persistence.Context
                 b.ToTable("UserTokens");
             });
 
-            builder.Entity<IdentityRole>(b =>
+            builder.Entity<ApplicationRole>(b =>
             {
                 b.ToTable("Roles");
             });
