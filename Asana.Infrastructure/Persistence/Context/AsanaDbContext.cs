@@ -27,17 +27,17 @@ namespace Asana.Infrastructure.Persistence.Context
                 b.ToTable("Users");
             });
 
-            builder.Entity<IdentityUserClaim<string>>(b =>
+            builder.Entity<IdentityUserClaim<Guid>>(b =>
             {
                 b.ToTable("UserClaims");
             });
 
-            builder.Entity<IdentityUserLogin<string>>(b =>
+            builder.Entity<IdentityUserLogin<Guid>>(b =>
             {
                 b.ToTable("UserLogins");
             });
 
-            builder.Entity<IdentityUserToken<string>>(b =>
+            builder.Entity<IdentityUserToken<Guid>>(b =>
             {
                 b.ToTable("UserTokens");
             });
@@ -47,12 +47,12 @@ namespace Asana.Infrastructure.Persistence.Context
                 b.ToTable("Roles");
             });
 
-            builder.Entity<IdentityRoleClaim<string>>(b =>
+            builder.Entity<IdentityRoleClaim<Guid>>(b =>
             {
                 b.ToTable("RoleClaims");
             });
 
-            builder.Entity<IdentityUserRole<string>>(b =>
+            builder.Entity<IdentityUserRole<Guid>>(b =>
             {
                 b.ToTable("UserRoles");
             });
