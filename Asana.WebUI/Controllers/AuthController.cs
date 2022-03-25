@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace Asana.WebUI.Controllers
 {
-
     public class AuthController : ApiControllerBase
     {
         private readonly IUserService _userService;
@@ -21,9 +20,9 @@ namespace Asana.WebUI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(UserRegisterDTO userRegister)
+        public async Task<IActionResult> Register(UserRegisterDto userRegister)
         {
-            var validator = new UserRegisterDTOValidation();
+            var validator = new UserRegisterDtoValidation();
             var validationResult =await validator.ValidateAsync(userRegister);
 
             if (!validationResult.IsValid)
@@ -56,9 +55,9 @@ namespace Asana.WebUI.Controllers
 
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(UserLoginDTO userLogin)
+        public async Task<IActionResult> Login(UserLoginDto userLogin)
         {
-            var validation = new UserLoginDTOValidation();
+            var validation = new UserLoginDtoValidation();
             var validateResulte = await validation.ValidateAsync(userLogin);
 
             if (!validateResulte.IsValid)
@@ -78,21 +77,19 @@ namespace Asana.WebUI.Controllers
         [HttpPost("check-Authenticated")]
         public async Task<IActionResult> IsAuthenticated()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                Result result = await _userService.GetUserByIdAsync(userId);
-                return JsonResponseStatus.Success(result.Value);
-            }
-            return JsonResponseStatus.Unauthorized();
+            if (User.Identity == null || !User.Identity.IsAuthenticated) return JsonResponseStatus.Unauthorized();
+            
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Result result = await _userService.GetUserByIdAsync(userId);
+            return JsonResponseStatus.Success(result.Value);
         }
 
 
         [HttpPost("forgotPassword")]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordDTO data)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto data)
         {
 
-            var validator = new ForgotPasswordDTOValidation();
+            var validator = new ForgotPasswordDtoValidation();
             var validationState = await validator.ValidateAsync(data);
 
             if (!validationState.IsValid)
@@ -108,16 +105,16 @@ namespace Asana.WebUI.Controllers
 
 
         [HttpPost("resetPassword")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordDTO passwordDTO)
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto passwordDto)
         {
-            var validator = new ResetPasswordDTOValidator();
-            var validationState = await validator.ValidateAsync(passwordDTO);
+            var validator = new ResetPasswordDtoValidator();
+            var validationState = await validator.ValidateAsync(passwordDto);
 
             if (!validationState.IsValid)
             {
                 return JsonResponseStatus.BadRequest(new string[] { "REQUEST_NOT_VALID" });
             }
-            var result = await _userService.ResetPasswordAsync(passwordDTO);
+            var result = await _userService.ResetPasswordAsync(passwordDto);
 
             return result.Succeeded ?
                  JsonResponseStatus.Success() : JsonResponseStatus.BadRequest(result.Errors);

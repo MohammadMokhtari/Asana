@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Asana.Application.Common.Validations
 {
-    public class UserRegisterDTOValidation : AbstractValidator<UserRegisterDTO>
+    public class UserRegisterDtoValidation : AbstractValidator<UserRegisterDto>
     {
-        public UserRegisterDTOValidation()
+        public UserRegisterDtoValidation()
         {
             RuleFor(u => u.Email)
              .NotEmpty()
@@ -26,9 +26,9 @@ namespace Asana.Application.Common.Validations
         }
     }
 
-    public class UserLoginDTOValidation : AbstractValidator<UserLoginDTO>
+    public class UserLoginDtoValidation : AbstractValidator<UserLoginDto>
     {
-        public UserLoginDTOValidation()
+        public UserLoginDtoValidation()
         {
             RuleFor(u => u.Email)
             .NotEmpty()
@@ -44,9 +44,9 @@ namespace Asana.Application.Common.Validations
         }
     }
 
-    public class ForgotPasswordDTOValidation : AbstractValidator<ForgotPasswordDTO>
+    public class ForgotPasswordDtoValidation : AbstractValidator<ForgotPasswordDto>
     {
-        public ForgotPasswordDTOValidation()
+        public ForgotPasswordDtoValidation()
         {
             RuleFor(f=>f.Email)
                 .NotEmpty()
@@ -56,9 +56,9 @@ namespace Asana.Application.Common.Validations
         }
     }
 
-    public class ResetPasswordDTOValidator : AbstractValidator<ResetPasswordDTO>
+    public class ResetPasswordDtoValidator : AbstractValidator<ResetPasswordDto>
     {
-        public ResetPasswordDTOValidator()
+        public ResetPasswordDtoValidator()
         {
             RuleFor(p => p.Email)
                .NotEmpty()

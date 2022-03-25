@@ -1,6 +1,6 @@
 ﻿namespace Asana.Application.DTOs
 {
-    public class UserRegisterDTO
+    public class UserRegisterDto
     {
         public string Email { get; set; }
 
@@ -9,7 +9,7 @@
         public string ConfirmPasword { get; set; }
     }
 
-    public class UserLoginDTO
+    public class UserLoginDto
     {
         public string Email { get; set; }
 
@@ -18,12 +18,12 @@
         public bool IsRemember { get; set; }
     }
 
-    public class ForgotPasswordDTO
+    public class ForgotPasswordDto
     {
         public string Email { get; set; }
     }
 
-    public class ResetPasswordDTO
+    public class ResetPasswordDto
     {
         public string Email { get; set; }
 
