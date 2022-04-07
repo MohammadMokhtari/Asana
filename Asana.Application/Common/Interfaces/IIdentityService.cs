@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Asana.Application.Common.Interfaces
 {
-    public interface IUserService
+    public interface IIdentityService
     {
         Task<Result> RegisterAsync(UserRegisterDto userRegister);
 

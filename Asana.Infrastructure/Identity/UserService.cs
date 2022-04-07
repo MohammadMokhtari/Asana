@@ -18,7 +18,7 @@ using System.Web;
 
 namespace Asana.Infrastructure.Identity
 {
-    public class UserService : IUserService
+    public class UserService : IIdentityService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<UserService> _logger;

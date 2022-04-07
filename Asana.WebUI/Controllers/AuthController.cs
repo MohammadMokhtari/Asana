@@ -12,9 +12,9 @@ namespace Asana.WebUI.Controllers
 {
     public class AuthController : ApiControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IIdentityService _userService;
 
-        public AuthController(IUserService userService)
+        public AuthController(IIdentityService userService)
         {
             _userService = userService;
         }
