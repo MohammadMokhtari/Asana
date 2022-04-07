@@ -47,8 +47,8 @@ namespace Asana.Infrastructure.Services
             emailMessage.To.AddRange(message.To);
             emailMessage.Subject = message.Subject;
 
-            var messageBody = "";
-            switch(type)
+            string messageBody;
+            switch (type)
             {
                 case EmailType.VerifiedEmail:
                      messageBody = CreateEmailContent(message.Content, "verifiedEmail.html");
