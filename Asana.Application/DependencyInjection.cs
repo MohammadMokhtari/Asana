@@ -1,5 +1,5 @@
-﻿using Asana.Application.Common.Validations;
-using Asana.Application.DTOs;
+﻿using Asana.Application.Common.Interfaces;
+using Asana.Application.Common.Services;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -17,6 +17,8 @@ namespace Asana.Application
 
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+
+            services.AddScoped<ILocationService, LocationService>();
 
             return services;
         }
