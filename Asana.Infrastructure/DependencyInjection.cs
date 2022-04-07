@@ -1,4 +1,5 @@
 ﻿using Asana.Application.Common.Interfaces;
+using Asana.Domain.Interfaces;
 using Asana.Infrastructure.Identity;
 using Asana.Infrastructure.Persistence.Context;
 using Asana.Infrastructure.Persistence.Options;
@@ -75,6 +76,7 @@ namespace Asana.Infrastructure
 
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Email));
 
