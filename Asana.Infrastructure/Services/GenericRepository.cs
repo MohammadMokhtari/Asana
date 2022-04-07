@@ -3,6 +3,7 @@ using Asana.Domain.Interfaces;
 using Asana.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -41,6 +42,10 @@ namespace Asana.Infrastructure.Services
             _dbset.Update(entity);
         }
 
+        public void UpdateRangeEntity(IEnumerable<TEntity> entities)
+        {
+            _dbset.UpdateRange(entities);
+        }
 
         public void RemoveEntity(TEntity entity)
         {
@@ -59,10 +64,10 @@ namespace Asana.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
-
         public void Dispose()
         {
             _context?.Dispose();
         }
+
     }
 }
