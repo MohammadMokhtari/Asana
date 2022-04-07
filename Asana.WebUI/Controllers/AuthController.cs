@@ -12,11 +12,11 @@ namespace Asana.WebUI.Controllers
 {
     public class AuthController : ApiControllerBase
     {
-        private readonly IIdentityService _userService;
+        private readonly IIdentityService _IdentityService;
 
-        public AuthController(IIdentityService userService)
+        public AuthController(IIdentityService identityService)
         {
-            _userService = userService;
+            _IdentityService = identityService;
         }
 
         [HttpPost("register")]
@@ -31,7 +31,7 @@ namespace Asana.WebUI.Controllers
                 return JsonResponseStatus.NotFound(errorList);
             }
 
-            var result = await _userService.RegisterAsync(userRegister);
+            var result = await _IdentityService.RegisterAsync(userRegister);
 
 
             return result.Succeeded ? JsonResponseStatus.Success()
@@ -47,7 +47,7 @@ namespace Asana.WebUI.Controllers
                 return BadRequest();
             }
 
-            var result = await _userService.ConfirmEmailAsync(token, userId);
+            var result = await _IdentityService.ConfirmEmailAsync(token, userId);
 
             return result.Succeeded ? JsonResponseStatus.Success()
                 : JsonResponseStatus.BadRequest(result.Errors);
@@ -66,7 +66,7 @@ namespace Asana.WebUI.Controllers
                 JsonResponseStatus.BadRequest(errorList);
             }
 
-            var result = await _userService.LoginAsync(userLogin);
+            var result = await _IdentityService.LoginAsync(userLogin);
 
             return result.Succeeded ?
                 JsonResponseStatus.Success(result.Value)
@@ -80,7 +80,7 @@ namespace Asana.WebUI.Controllers
             if (User.Identity == null || !User.Identity.IsAuthenticated) return JsonResponseStatus.Unauthorized();
             
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Result result = await _userService.GetUserByIdAsync(userId);
+            Result result = await _IdentityService.GetUserByIdAsync(userId);
             return JsonResponseStatus.Success(result.Value);
         }
 
@@ -97,7 +97,7 @@ namespace Asana.WebUI.Controllers
                 return JsonResponseStatus.BadRequest(new string[] { "REQUEST_NOT_VALID" });
             }
 
-            var result = await _userService.ForgotPasswordAsync(data.Email);
+            var result = await _IdentityService.ForgotPasswordAsync(data.Email);
 
             return result.Succeeded ?
                 JsonResponseStatus.Success() : JsonResponseStatus.BadRequest(result.Errors);
@@ -114,7 +114,7 @@ namespace Asana.WebUI.Controllers
             {
                 return JsonResponseStatus.BadRequest(new string[] { "REQUEST_NOT_VALID" });
             }
-            var result = await _userService.ResetPasswordAsync(passwordDto);
+            var result = await _IdentityService.ResetPasswordAsync(passwordDto);
 
             return result.Succeeded ?
                  JsonResponseStatus.Success() : JsonResponseStatus.BadRequest(result.Errors);

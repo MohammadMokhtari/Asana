@@ -18,15 +18,15 @@ using System.Web;
 
 namespace Asana.Infrastructure.Identity
 {
-    public class UserService : IIdentityService
+    public class IdentityService : IIdentityService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger<UserService> _logger;
+        private readonly ILogger<IdentityService> _logger;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
 
-        public UserService(UserManager<ApplicationUser> userManager,
-            ILogger<UserService> logger, IEmailSender emailSender,
+        public IdentityService(UserManager<ApplicationUser> userManager,
+            ILogger<IdentityService> logger, IEmailSender emailSender,
             IConfiguration configuration)
         {
             _userManager = userManager;
