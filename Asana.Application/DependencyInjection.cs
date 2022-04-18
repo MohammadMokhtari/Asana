@@ -18,7 +18,11 @@ namespace Asana.Application
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 
-            services.AddScoped<ILocationService, LocationService>();
+            services.AddScoped<IMediaFileService, MediaFileService>();
+            services.AddScoped<IAddressService, AddressService>();
+            services.AddScoped<IProvinceService, ProvinceService>();
+            services.AddScoped<IUserMediaFileService, UserMediaFileService>();
+            services.AddSingleton<IUrlBuilderService,UrlBuilderService>();
 
             return services;
         }
