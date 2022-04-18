@@ -1,6 +1,8 @@
-﻿using Asana.Infrastructure.Identity;
+﻿using Asana.Domain.Entities.Media;
+using Asana.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
 
 namespace Asana.Infrastructure.Persistence.Configurations
 {
@@ -13,6 +15,10 @@ namespace Asana.Infrastructure.Persistence.Configurations
                 .WithOne()
                 .HasForeignKey(a => a.UserId)
                 .IsRequired();
+            builder
+                .HasOne(a => a.MediaFile)
+                .WithOne()
+                .HasForeignKey<UserMediaFile>(m => m.UserId);
         }
     }
 }
