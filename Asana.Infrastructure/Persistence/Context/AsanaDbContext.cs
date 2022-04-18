@@ -1,14 +1,18 @@
-﻿using Asana.Domain.Entities.Addresses;
+﻿using Asana.Application.Common.Interfaces;
+using Asana.Domain.Entities.Addresses;
+using Asana.Domain.Entities.Media;
 using Asana.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Asana.Infrastructure.Persistence.Context
 {
-    public class AsanaDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
+    public class AsanaDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>, IApplicationDbContext
     {
         public AsanaDbContext(DbContextOptions<AsanaDbContext> options)
             : base(options)
@@ -63,11 +67,22 @@ namespace Asana.Infrastructure.Persistence.Context
             builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
 
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            return result;
+        }
+
+
+
         public DbSet<Address> Addresses { get; set; }
 
         public DbSet<State> States { get; set; }
 
         public DbSet<City> Cities { get; set; }
-        
+
+        public DbSet<UserMediaFile> UserMediaFiles { get; set; }
+
     }
 }
