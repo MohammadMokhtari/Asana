@@ -1,5 +1,8 @@
 using Asana.Application;
+using Asana.Application.Common.Interfaces;
+using Asana.Application.Common.Mappings;
 using Asana.Infrastructure;
+using Asana.WebUI.Services;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,6 +28,9 @@ namespace Asana.WebUI
 
             services.AddApplication();
 
+            services.AddSingleton<ICurrentUserService, CurrentUserService>();
+            services.AddSingleton<IHostService, HostService>();
+
             services.AddControllers().AddFluentValidation(x => x.AutomaticValidationEnabled = false);
 
             services.AddCors(option =>
@@ -38,6 +44,7 @@ namespace Asana.WebUI
                     
                 });
             });
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
