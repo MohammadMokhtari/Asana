@@ -24,9 +24,14 @@ namespace Asana.Application.Common.Models
             return new Result(true, Array.Empty<string>() , value);
         }
 
+        public static Result Failure(params string[] errors)
+        {
+            return new Result(false, errors);
+        }
         public static Result Failure(IEnumerable<string> errors)
         {
             return new Result(false, errors);
         }
+
     }
 }
