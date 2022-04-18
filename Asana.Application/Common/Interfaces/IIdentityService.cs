@@ -1,5 +1,6 @@
 ﻿using Asana.Application.Common.Models;
 using Asana.Application.DTOs;
+using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
 namespace Asana.Application.Common.Interfaces
@@ -17,5 +18,13 @@ namespace Asana.Application.Common.Interfaces
         Task<Result> ForgotPasswordAsync(string email);
 
         Task<Result> ResetPasswordAsync(ResetPasswordDto passwordDto);
+
+        Task<Result> GetUserInfoAsync();
+
+        Task<Result> UpdateUserAsync(UserUpdatDto userDto);
+
+        Task<Result> UpdateUserPhotoAsync(IFormFile photo);
+
+        Task<Result> RemoveUserPhotoAsync();
     }
 }
