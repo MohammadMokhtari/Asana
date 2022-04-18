@@ -21,7 +21,7 @@ namespace Asana.WebUI.Controllers
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserRegisterDto userRegister)
-        {
+        {   
             var validator = new UserRegisterDtoValidation();
             var validationResult =await validator.ValidateAsync(userRegister);
 
