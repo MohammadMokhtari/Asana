@@ -16,7 +16,7 @@ namespace Asana.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.13")
+                .HasAnnotation("ProductVersion", "5.0.15")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("Asana.Domain.Entities.Addresses.Address", b =>
@@ -152,6 +152,45 @@ namespace Asana.Infrastructure.Persistence.Migrations
                     b.ToTable("States");
                 });
 
+            modelBuilder.Entity("Asana.Domain.Entities.Media.UserMediaFile", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Alt")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FolderPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MediaName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MediaTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserMediaFiles");
+                });
+
             modelBuilder.Entity("Asana.Infrastructure.Identity.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -196,9 +235,6 @@ namespace Asana.Infrastructure.Persistence.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("Avatar")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -217,6 +253,9 @@ namespace Asana.Infrastructure.Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasMaxLength(220)
                         .HasColumnType("nvarchar(220)");
+
+                    b.Property<int>("GenderId")
+                        .HasColumnType("int");
 
                     b.Property<string>("LastName")
                         .HasMaxLength(220)
@@ -410,6 +449,15 @@ namespace Asana.Infrastructure.Persistence.Migrations
                     b.Navigation("State");
                 });
 
+            modelBuilder.Entity("Asana.Domain.Entities.Media.UserMediaFile", b =>
+                {
+                    b.HasOne("Asana.Infrastructure.Identity.ApplicationUser", null)
+                        .WithOne("MediaFile")
+                        .HasForeignKey("Asana.Domain.Entities.Media.UserMediaFile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Asana.Infrastructure.Identity.ApplicationRole", null)
@@ -476,6 +524,8 @@ namespace Asana.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Asana.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Navigation("Addresses");
+
+                    b.Navigation("MediaFile");
                 });
 #pragma warning restore 612, 618
         }
