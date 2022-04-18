@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 namespace Asana.Infrastructure
@@ -24,6 +25,9 @@ namespace Asana.Infrastructure
             {
                 option.UseSqlServer(configuration.GetConnectionString("AsanaConnectionString"));
             });
+
+
+            services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AsanaDbContext>());
 
             #endregion
 
@@ -44,7 +48,6 @@ namespace Asana.Infrastructure
                 .AddDefaultTokenProviders();
 
             #endregion
-
 
             #region Authentication
 
@@ -74,11 +77,15 @@ namespace Asana.Infrastructure
 
             #endregion
 
+            #region Services
+
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Email));
+
+            #endregion
 
             return services;
         }
