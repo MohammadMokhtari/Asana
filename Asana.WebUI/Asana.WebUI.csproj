@@ -17,8 +17,4 @@
     <ProjectReference Include="..\Asana.Infrastructure\Asana.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\media\images\thumbs\profile\" />
-  </ItemGroup>
-
 </Project>
