@@ -10,7 +10,7 @@ namespace Asana.Domain.Entities.Addresses
         #region Properties
 
         [Required]
-        [StringLength(1000)]
+        [StringLength(250)]
         public string AddressLine { get; set; }
 
         [Required]
@@ -18,17 +18,18 @@ namespace Asana.Domain.Entities.Addresses
         public string PostalCode { get; set; }
 
         [Required]
+        [StringLength(4)]
         public string NumberPlate { get; set; }
 
 
         public byte UnitNumber { get; set; }
         
         [Required]
-        [StringLength(200)]
+        [StringLength(100)]
         public string RecipientFirstName { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [StringLength(100)]
         public string RecipientLastName { get; set; }
 
         [Required]
@@ -36,7 +37,6 @@ namespace Asana.Domain.Entities.Addresses
         public string RecipientNationalCode { get; set; }
 
         [Required]
-        [StringLength(11)]
         public string RecipientPhoneNumber { get; set; }
         
 
