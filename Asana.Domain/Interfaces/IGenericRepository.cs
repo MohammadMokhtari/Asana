@@ -10,7 +10,7 @@ namespace Asana.Domain.Interfaces
     {
         IQueryable<TEntity> GetEntitiesQuery();
 
-        Task<TEntity> GetEntityByIdAsync(int id);
+        Task<TEntity> GetEntityByIdAsync(long id);
 
         Task AddEntityAsync(TEntity entity);
 
@@ -20,8 +20,10 @@ namespace Asana.Domain.Interfaces
 
         void RemoveEntity(TEntity entity);
 
-        Task RemoveEntity(int id);
+        Task RemoveEntityAsync(long id);
 
         Task SaveChangeAsync();
+
+        void DeleteEntity(TEntity entity);  
     }
 }

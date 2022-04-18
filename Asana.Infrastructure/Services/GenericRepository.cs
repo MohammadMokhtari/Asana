@@ -32,7 +32,7 @@ namespace Asana.Infrastructure.Services
             await _dbset.AddAsync(entity);
         }
 
-        public async Task<TEntity> GetEntityByIdAsync(int id)
+        public async Task<TEntity> GetEntityByIdAsync(long id)
         {
             return await _dbset.FindAsync(id);
         }
@@ -53,7 +53,7 @@ namespace Asana.Infrastructure.Services
             UpdateEntity(entity);
         }
 
-        public async Task RemoveEntity(int id)
+        public async Task RemoveEntityAsync(long id)
         {
             var entity = await GetEntityByIdAsync(id);
             RemoveEntity(entity);
@@ -69,5 +69,9 @@ namespace Asana.Infrastructure.Services
             _context?.Dispose();
         }
 
+        public void DeleteEntity(TEntity entity)
+        {
+            _context.Remove(entity);
+        }
     }
 }
