@@ -1,8 +1,10 @@
 ﻿using Asana.Domain.Entities.Addresses;
+using Asana.Domain.Entities.Media;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Asana.Infrastructure.Identity
 {
@@ -21,12 +23,24 @@ namespace Asana.Infrastructure.Identity
         [StringLength(16)]
         public string CreditCardNumber { get; set; }
 
-        public string Avatar { get; set; }
+        public int GenderId { get; set; }
 
+        public DateTime CreatedOn { get; set; }
+
+        public DateTime ModifiedOn { get; set; }
+
+        [NotMapped]
+        public Gender Gender 
+        {
+            get => (Gender)GenderId;
+            set => GenderId = (int)value;
+        }
 
         #region Relations
 
         public ICollection<Address> Addresses{ get; set; }
+
+        public UserMediaFile MediaFile { get; set; }
 
         #endregion
     }
