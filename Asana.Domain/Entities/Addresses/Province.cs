@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Asana.Domain.Entities.Addresses
 {
-    public class State : BaseEntity , ISoftDeletable
+    public class Province : BaseEntity , ISoftDeletable
     {
         #region Properties
 

@@ -12,11 +12,11 @@ namespace Asana.Application.DTOs
         public List<CityOptionDto> CityOptions { get; set; }
     }
 
-    public class ProvinceOptionDto : IMapFrom<State>
+    public class ProvinceOptionDto : IMapFrom<Province>
     {
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<State, ProvinceOptionDto>()
+            profile.CreateMap<Province, ProvinceOptionDto>()
                 .ForMember(s => s.Lable, d => d.MapFrom(s => s.Name.Replace("-", " ")))
                 .ForMember(s => s.Value, opt => opt.MapFrom(s => s.Name));
         }
@@ -34,7 +34,7 @@ namespace Asana.Application.DTOs
             profile.CreateMap<City, CityOptionDto>()
                 .ForMember(s => s.Lable, d => d.MapFrom(s => s.Name.Replace("-", " ")))
                 .ForMember(s => s.Value, opt => opt.MapFrom(s => s.Name))
-                .ForMember(s => s.ParentId, opt => opt.MapFrom(s => s.StateName));
+                .ForMember(s => s.ParentId, opt => opt.MapFrom(s => s.ProvinceName));
         }
 
         public string Lable { get; set; }

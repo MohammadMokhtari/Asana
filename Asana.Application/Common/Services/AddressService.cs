@@ -17,7 +17,7 @@ namespace Asana.Application.Common.Services
     public class AddressService : IAddressService
     {
         private readonly IGenericRepository<Address> _addressRepository;
-        private readonly IGenericRepository<State> _provinceRepository;
+        private readonly IGenericRepository<Province> _provinceRepository;
         private readonly IGenericRepository<City> _cityRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
@@ -26,7 +26,7 @@ namespace Asana.Application.Common.Services
         public AddressService(IGenericRepository<Address> addressRepository,
             ICurrentUserService currentUserService,
             IMapper mapper,
-            IGenericRepository<State> provinceRepository,
+            IGenericRepository<Province> provinceRepository,
             IGenericRepository<City> cityGenericRepository,
             ILogger<AddressService> logger)
         {
@@ -78,7 +78,7 @@ namespace Asana.Application.Common.Services
                 var newAddress = new Address();
                 newAddress.AddressLine = addressDto.AddressLine;
                 newAddress.CityName = addressDto.CityName;
-                newAddress.StateName = addressDto.StateName;
+                newAddress.ProvinceName = addressDto.StateName;
                 newAddress.UnitNumber = addressDto.UnitNumber;
                 newAddress.PostalCode = addressDto.PostalCode;
                 newAddress.NumberPlate = addressDto.NumberPlate;
@@ -128,7 +128,7 @@ namespace Asana.Application.Common.Services
             {
                 address.AddressLine = addressDto.AddressLine;
                 address.CityName = addressDto.CityName;
-                address.StateName = address.StateName;
+                address.ProvinceName = address.ProvinceName;
                 address.UnitNumber = addressDto.UnitNumber;
                 address.PostalCode = addressDto.PostalCode;
                 address.NumberPlate = addressDto.NumberPlate;
