@@ -1,5 +1,6 @@
 ﻿using Asana.Domain.Entities.Addresses;
 using Asana.Domain.Entities.Media;
+using Asana.Domain.Entities.Token;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,8 @@ namespace Asana.Infrastructure.Identity
         public ICollection<Address> Addresses{ get; set; }
 
         public UserMediaFile MediaFile { get; set; }
+
+        public ICollection<RefreshToken> RefreshToken { get; set; }
 
         #endregion
     }
