@@ -13,6 +13,8 @@ namespace Asana.Application.Common.Interfaces
 
         Task<Result> LoginAsync(UserLoginDto userLogin);
 
+        Task<Result> RefreshTokenAsync(string accessToken , string refreshToken);
+
         Task<Result> GetUserByIdAsync(string id);
 
         Task<Result> ForgotPasswordAsync(string email);
