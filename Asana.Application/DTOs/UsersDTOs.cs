@@ -61,6 +61,8 @@ namespace Asana.Application.DTOs
         public int Score { get; set; }
         
         public string Token { get; set; }
+        
+        public string RefreshToken { get; set; }
 
         public int TokenExpiresIn { get; set; }
     }
@@ -124,6 +126,20 @@ namespace Asana.Application.DTOs
     {
         public string PhotoUrl { get; set; }
 
+    }
+
+    public class RefreshTokenRequestDto
+    {
+        public string AccessToken { get; set; }
+
+        public string RefreshToken { get; set; }
+    }
+
+    public class RefreshTokenResponseDto
+    {
+        public string AccessToken { get; set; }
+
+        public string RefreshToken { get; set; }
     }
 
 }
