@@ -2,6 +2,9 @@
 using Asana.Application.Common.Interfaces;
 using Asana.Application.Common.Models;
 using Asana.Application.DTOs;
+using Asana.Domain.Entities.Token;
+using Asana.Domain.Interfaces;
+using Asana.Infrastructure.Persistence.Options;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -9,10 +12,10 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -24,30 +27,42 @@ namespace Asana.Infrastructure.Identity
     public class IdentityService : IIdentityService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger<IdentityService> _logger;
+        private readonly ILogger _logger;
         private readonly IEmailSender _emailSender;
-        private readonly IConfiguration _configuration;
+        private readonly BearerTokensOptions _bearerConfiguration;
         private readonly IUrlBuilderService _urlBuilderService;
+        private readonly IConfiguration _configuration;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly IUserMediaFileService _userMediaFileService;
+        private readonly ITokenService _tokenService;
+        private readonly IGenericRepository<RefreshToken> _tokenRepository;
 
-        public IdentityService(UserManager<ApplicationUser> userManager,
-            ILogger<IdentityService> logger, IEmailSender emailSender,
+        public IdentityService(
+            UserManager<ApplicationUser> userManager,
+            ILoggerFactory logger,
+            IEmailSender emailSender,
+            IOptionsSnapshot<BearerTokensOptions> bearerConfiguration,
             IConfiguration configuration,
             IUrlBuilderService urlBuilderService,
             ICurrentUserService currentUserService,
             IMapper mapper,
-            IUserMediaFileService userMediaFileService)
+            IUserMediaFileService userMediaFileService,
+            ITokenService tokenService,
+            IGenericRepository<RefreshToken> tokenRepository
+            )
         {
             _userManager = userManager;
-            _logger = logger;
+            _logger = logger.CreateLogger(nameof(IdentityService));
             _emailSender = emailSender;
             _configuration = configuration;
+            _bearerConfiguration = bearerConfiguration.Value;
             _urlBuilderService = urlBuilderService;
             _mapper = mapper;
             _currentUserService = currentUserService;
             _userMediaFileService = userMediaFileService;
+            _tokenService = tokenService;
+            _tokenRepository = tokenRepository;
         }
 
 
@@ -111,10 +126,13 @@ namespace Asana.Infrastructure.Identity
 
         public async Task<Result> LoginAsync(UserLoginDto userLogin)
         {
+            _logger.LogInformation("LoginAsyncRequest");
+            _logger.LogWarning(userLogin.Email, userLogin.Password);
+
             var user = await _userManager.Users
-                .Where(u=>u.Email == userLogin.Email)
-                    .Include(u=>u.MediaFile)
-                    .Include(u=>u.Addresses.Where(a=>a.IsDefault))
+                .Where(u => u.Email == userLogin.Email)
+                    .Include(u => u.MediaFile)
+                    .Include(u => u.Addresses.Where(a => a.IsDefault))
                         .SingleOrDefaultAsync();
 
             if (user is null)
@@ -135,11 +153,18 @@ namespace Asana.Infrastructure.Identity
 
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            var token = GenrateJwtToken(user, userRoles.FirstOrDefault());
+            var token = await _tokenService.GenrateJwtToken(user, userRoles.FirstOrDefault());
 
             string photoUrl = _urlBuilderService.BuildAbsolutProfilePhotoUrl(user.MediaFile);
 
-            var userLoginResponseDto = user.MapToUserLoginResponsDto(0, 0, photoUrl, token, 9000);
+            var userLoginResponseDto = user.MapToUserLoginResponsDto(
+                0,
+                0,
+                photoUrl,
+                token.accessToken,
+                token.refreshToken,
+                _bearerConfiguration.AccessTokenExpirationSeconds);
+
             var addressDto = _mapper.Map<AddressDto>(user.Addresses.FirstOrDefault());
 
             var response = new LoginResponseDto();
@@ -153,7 +178,7 @@ namespace Asana.Infrastructure.Identity
         public async Task<Result> RegisterAsync(UserRegisterDto userRegister)
         {
 
-            var user = new ApplicationUser() { UserName = userRegister.Email, Email = userRegister.Email ,CreatedOn = DateTime.Now };
+            var user = new ApplicationUser() { UserName = userRegister.Email, Email = userRegister.Email, CreatedOn = DateTime.Now };
             var result = await _userManager.CreateAsync(user, userRegister.Password);
 
             if (result.Succeeded)
@@ -213,7 +238,7 @@ namespace Asana.Infrastructure.Identity
         {
             var user = await _userManager.Users
                 .Where(u => u.Id == _currentUserService.GuidUserId)
-                .Include(u=>u.MediaFile)
+                .Include(u => u.MediaFile)
                     .Include(u => u.Addresses)
                             .SingleOrDefaultAsync();
 
@@ -248,14 +273,14 @@ namespace Asana.Infrastructure.Identity
 
         public async Task<Result> UpdateUserPhotoAsync(IFormFile photo)
         {
-             var imageFile = new ProcessImageModel()
-                {
-                    FileName = photo.FileName,
-                    Type = photo.ContentType,
-                    Content = photo.OpenReadStream()
-                };
+            var imageFile = new ProcessImageModel()
+            {
+                FileName = photo.FileName,
+                Type = photo.ContentType,
+                Content = photo.OpenReadStream()
+            };
 
-                return await _userMediaFileService.UpdatUserPhotoAsync(imageFile);
+            return await _userMediaFileService.UpdatUserPhotoAsync(imageFile);
         }
 
         public async Task<Result> RemoveUserPhotoAsync()
@@ -263,23 +288,67 @@ namespace Asana.Infrastructure.Identity
             return await _userMediaFileService.DeleteUserPhotoAsync();
         }
 
-        private string GenrateJwtToken(ApplicationUser user, string userRole)
+        public async Task<Result> RefreshTokenAsync(string accessToken, string refreshToken)
         {
-            var claims = new[] {
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
-            new Claim(ClaimTypes.Role, userRole)
+
+            if(string.IsNullOrWhiteSpace(accessToken) && string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return Result.Failure("INVALID_TOKEN");
+            }
+
+            var validatedtoken = _tokenService.GetClaimsPrincipalFormToken(accessToken);
+
+            if (validatedtoken == null)
+            {
+                return Result.Failure("INVALID_TOKEN");
+            }
+
+            var expiredateunix = long.Parse(validatedtoken.Claims.Single(s => s.Type == JwtRegisteredClaimNames.Exp).Value);
+
+            var expiredatetimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+              .AddSeconds(expiredateunix);
+
+            if (expiredatetimeUtc > DateTime.UtcNow)
+                return Result.Failure("TOKEN_HAS_NOT_EXPIRED");
+
+            var jti = validatedtoken.Claims.Single(s => s.Type == JwtRegisteredClaimNames.Jti).Value;
+
+            var storerefreshtoken = await _tokenService.FindRefreshToken(refreshToken);
+
+
+            if (refreshToken is null)
+                return Result.Failure("TOKEN_DOES_NOT_EXIST");
+
+            if (DateTime.UtcNow > storerefreshtoken.RefreshTokenExpiresDate)
+                 return Result.Failure("TOKEN_HAS_EXPIRED");
+            
+            if (storerefreshtoken.Invalidated)
+                return Result.Failure("TOKEN_HAS_INVALIDATED");
+            
+            if (storerefreshtoken.Used)
+                return Result.Failure("TOKEN_HAS_USED");
+
+            if (storerefreshtoken.JwtId !=jti)
+                return Result.Failure("TOKEN_HAS_NOT_MATCH_THIS_JWT");
+
+            storerefreshtoken.Used = true;
+            _tokenRepository.UpdateEntity(storerefreshtoken);
+            await _tokenRepository.SaveChangeAsync();
+
+            var user = await _userManager.FindByIdAsync(validatedtoken.Claims.Single(s => s.Type == ClaimTypes.NameIdentifier).Value);
+            var roles = await _userManager.GetRolesAsync(user);
+
+             var tokens = await _tokenService.GenrateJwtToken(user, roles.FirstOrDefault());
+
+
+            var response = new RefreshTokenResponseDto()
+            {
+                AccessToken = tokens.accessToken,
+                RefreshToken = tokens.refreshToken
             };
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            return Result.Success(response);
 
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
-
-            var tokenDescriptor = new JwtSecurityToken(
-                _configuration["Jwt:Issuer"], _configuration["Jwt:Audience"], claims,
-                expires: DateTime.Now.AddMinutes(30), signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
 
     }
