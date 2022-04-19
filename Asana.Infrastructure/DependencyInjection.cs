@@ -51,6 +51,21 @@ namespace Asana.Infrastructure
 
             #region Authentication
 
+            var tokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateIssuer = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidateAudience = true,
+                //LifetimeValidator = TokenLifetimeValidator.Validate,
+                ValidAudience = configuration["JWtBearer:Audience"],
+                ValidIssuer = configuration["JWtBearer:Issuer"],
+                IssuerSigningKey =
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWtBearer:Key"])),
+            };
+
+            services.AddSingleton(tokenValidationParameters);
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -61,18 +76,7 @@ namespace Asana.Infrastructure
                 {
                     options.SaveToken = true;
                     options.RequireHttpsMetadata = false;
-                    options.TokenValidationParameters = new TokenValidationParameters()
-                    {
-                        ValidateIssuer = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidateAudience = true,
-                        LifetimeValidator = TokenLifetimeValidator.Validate,
-                        ValidAudience = configuration["Jwt:Audience"],
-                        ValidIssuer = configuration["Jwt:Issuer"],
-                        IssuerSigningKey = 
-                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
-                    };
+                    options.TokenValidationParameters = tokenValidationParameters;
                 });
 
             #endregion
@@ -82,8 +86,11 @@ namespace Asana.Infrastructure
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddSingleton<ISecurityService, SecurityService>();
 
             services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.Email));
+            services.Configure<BearerTokensOptions>(configuration.GetSection(BearerTokensOptions.JWtBearer));
 
             #endregion
 
