@@ -3,7 +3,6 @@ using Asana.Domain.Interfaces;
 using Asana.Infrastructure.Persistence.Options;
 using Asana.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;

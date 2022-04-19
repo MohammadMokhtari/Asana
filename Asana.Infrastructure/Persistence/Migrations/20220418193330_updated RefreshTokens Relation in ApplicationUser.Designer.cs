@@ -4,14 +4,16 @@ using Asana.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Asana.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AsanaDbContext))]
-    partial class AsanaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220418193330_updated RefreshTokens Relation in ApplicationUser")]
+    partial class updatedRefreshTokensRelationinApplicationUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

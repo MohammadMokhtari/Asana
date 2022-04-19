@@ -4,14 +4,16 @@ using Asana.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Asana.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AsanaDbContext))]
-    partial class AsanaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220418192612_Added RefreshTokens Table")]
+    partial class AddedRefreshTokensTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,7 +229,8 @@ namespace Asana.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("RefreshTokens");
                 });
@@ -508,8 +511,8 @@ namespace Asana.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Asana.Domain.Entities.Token.RefreshToken", b =>
                 {
                     b.HasOne("Asana.Infrastructure.Identity.ApplicationUser", null)
-                        .WithMany("RefreshToken")
-                        .HasForeignKey("UserId")
+                        .WithOne("RefreshToken")
+                        .HasForeignKey("Asana.Domain.Entities.Token.RefreshToken", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
