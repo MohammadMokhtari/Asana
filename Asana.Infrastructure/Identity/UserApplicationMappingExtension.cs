@@ -37,7 +37,8 @@ namespace Asana.Infrastructure.Identity
             double walletBalance,
             int score,
             string url,
-            string token,   
+            string token,
+            string refreshToken,
             int expireIn)
         {
             return new UserLoginResponseDto()
@@ -53,6 +54,7 @@ namespace Asana.Infrastructure.Identity
                 TokenExpiresIn = expireIn,
                 UserId = applicationUser.Id.ToString(),
                 UserName = applicationUser.UserName,
+                RefreshToken = refreshToken
             };
         }
     }
