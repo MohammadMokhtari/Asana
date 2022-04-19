@@ -1,6 +1,7 @@
 ﻿using Asana.Application.Common.Interfaces;
 using Asana.Domain.Entities.Addresses;
 using Asana.Domain.Entities.Media;
+using Asana.Domain.Entities.Token;
 using Asana.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -83,6 +84,8 @@ namespace Asana.Infrastructure.Persistence.Context
         public DbSet<City> Cities { get; set; }
 
         public DbSet<UserMediaFile> UserMediaFiles { get; set; }
+
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     }
 }
