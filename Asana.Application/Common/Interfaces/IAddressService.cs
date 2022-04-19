@@ -15,6 +15,7 @@ namespace Asana.Application.Common.Interfaces
         Task<Result> UpdateAddressAsync(AddressUpdateDto addressDto);
 
         Task<Result> DeleteAddressAsync(long addressId);
-
+        
+        Task<Result> GetAllProvinceCityOptionsAsync();
     }
 }

@@ -6,6 +6,7 @@ using Asana.Domain.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,22 +16,31 @@ namespace Asana.Application.Common.Services
 {
     public class AddressService : IAddressService
     {
-        private readonly IGenericRepository<Address> _repository;
+        private readonly IGenericRepository<Address> _addressRepository;
+        private readonly IGenericRepository<State> _provinceRepository;
+        private readonly IGenericRepository<City> _cityRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
-
-        public AddressService(IGenericRepository<Address> repository,
+        private readonly ILogger<AddressService> _logger;
+        
+        public AddressService(IGenericRepository<Address> addressRepository,
             ICurrentUserService currentUserService,
-            IMapper mapper)
+            IMapper mapper,
+            IGenericRepository<State> provinceRepository,
+            IGenericRepository<City> cityGenericRepository,
+            ILogger<AddressService> logger)
         {
-            _repository = repository;
+            _addressRepository = addressRepository;
             _currentUserService = currentUserService;
             _mapper = mapper;
+            _logger = logger;
+            _provinceRepository = provinceRepository;
+            _cityRepository = cityGenericRepository;
         }
 
         public async Task<Result> GetAddressesAsync()
         {
-            var addresses = await _repository.GetEntitiesQuery()
+            var addresses = await _addressRepository.GetEntitiesQuery()
                 .Where(a => a.UserId == _currentUserService.GuidUserId)
                 .ProjectTo<AddressDto>(_mapper.ConfigurationProvider).ToListAsync();
 
@@ -42,7 +52,7 @@ namespace Asana.Application.Common.Services
 
         public async Task<Result> SetDefaultAddressAsync(long addressId)
         {
-            var addresses = await this._repository.GetEntitiesQuery()
+            var addresses = await this._addressRepository.GetEntitiesQuery()
                 .Where(a => a.UserId == _currentUserService.GuidUserId).ToListAsync();
 
             if (addresses is not null)
@@ -78,8 +88,8 @@ namespace Asana.Application.Common.Services
                 newAddress.RecipientPhoneNumber = addressDto.RecipientPhoneNumber;
                 newAddress.UserId = _currentUserService.GuidUserId;
 
-                await _repository.AddEntityAsync(newAddress);
-                await _repository.SaveChangeAsync();
+                await _addressRepository.AddEntityAsync(newAddress);
+                await _addressRepository.SaveChangeAsync();
                 return Result.Success();
             }
             catch (Exception ex)
@@ -93,8 +103,8 @@ namespace Asana.Application.Common.Services
         {
             try
             {
-                await _repository.RemoveEntityAsync(addressId);
-                await _repository.SaveChangeAsync();
+                await _addressRepository.RemoveEntityAsync(addressId);
+                await _addressRepository.SaveChangeAsync();
                 return Result.Success();
             }
             catch (Exception ex)
@@ -105,7 +115,7 @@ namespace Asana.Application.Common.Services
 
         public async Task<Result> UpdateAddressAsync(AddressUpdateDto addressDto)
         {
-            var address = await _repository.GetEntitiesQuery()
+            var address = await _addressRepository.GetEntitiesQuery()
                 .Where(a=>a.UserId == _currentUserService.GuidUserId && a.Id == addressDto.Id)
                 .FirstOrDefaultAsync();
 
@@ -127,8 +137,8 @@ namespace Asana.Application.Common.Services
                 address.RecipientNationalCode = addressDto.RecipientNationalCode;
                 address.RecipientPhoneNumber = addressDto.RecipientPhoneNumber;
 
-                _repository.UpdateEntity(address);
-                await _repository.SaveChangeAsync();
+                _addressRepository.UpdateEntity(address);
+                await _addressRepository.SaveChangeAsync();
 
                 return Result.Success();
             }
@@ -149,15 +159,15 @@ namespace Asana.Application.Common.Services
                     ad.IsDefault = false;
                 }
 
-                this._repository.UpdateRangeEntity(addresses);
+                this._addressRepository.UpdateRangeEntity(addresses);
 
                 var address = addresses.FirstOrDefault(a => a.Id == addressId);
 
                 address.IsDefault = true;
 
-                _repository.UpdateEntity(address);
+                _addressRepository.UpdateEntity(address);
 
-                await _repository.SaveChangeAsync();
+                await _addressRepository.SaveChangeAsync();
 
                 return _mapper.Map<AddressDto>(address);
             }
@@ -165,6 +175,34 @@ namespace Asana.Application.Common.Services
             {
 
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<Result> GetAllProvinceCityOptionsAsync()
+        {
+            try
+            {
+                var provinceOptions = await _provinceRepository.GetEntitiesQuery()
+                  .ProjectTo<ProvinceOptionDto>(_mapper.ConfigurationProvider)
+                    .ToListAsync();
+
+                var cityOptions = await _cityRepository.GetEntitiesQuery()
+                    .ProjectTo<CityOptionDto>(_mapper.ConfigurationProvider)
+                    .ToListAsync();
+
+                var response = new ProvinceOptionDtoResponse();
+                response.ProvinceOptions = provinceOptions;
+                response.CityOptions = cityOptions;
+
+                _logger.LogInformation("Get AllProvinceOption to be successful");
+
+                return Result.Success(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Get AllProvinceOption Faildee!");
+
+                return Result.Failure("CAN_NOT_GET_ALL_PROVINCE");
             }
         }
     }

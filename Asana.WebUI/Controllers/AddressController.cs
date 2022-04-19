@@ -11,12 +11,10 @@ namespace Asana.WebUI.Controllers
     public class AddressController : ApiControllerBase
     {
         private readonly IAddressService _addressService;
-        private readonly IProvinceService _provinceService;
 
-        public AddressController(IAddressService addressService, IProvinceService provinceService)
+        public AddressController(IAddressService addressService)
         {
             _addressService = addressService;
-            _provinceService = provinceService;
         }
 
         [HttpGet()]
@@ -68,7 +66,7 @@ namespace Asana.WebUI.Controllers
         [HttpGet("allProvince")]
         public async Task<IActionResult> AllProvince()
         {
-            var result = await _provinceService.AllProvinceOptionAsync();
+            var result = await _addressService.GetAllProvinceCityOptionsAsync();
 
             return result.Succeeded ? JsonResponseStatus.Success(result.Value) :
                             JsonResponseStatus.Error();
