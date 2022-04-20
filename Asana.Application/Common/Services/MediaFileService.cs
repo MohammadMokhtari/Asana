@@ -41,11 +41,12 @@ namespace Asana.Application.Common.Services
         private const int ThumbnailWidth = 300;
         private const int FullscreenWidth = 1000;
 
-        public async Task ProcessImageAsync(IEnumerable<ProcessImageModel> images, string subFolderName)
+        public async Task ProcessImageAsync(IEnumerable<ProcessImageModel> images,int totalImage, string subFolderName)
         {
+            _logger.LogInformation("ProcessImageAsync Executed");
+
             subFolderName ??= "others";
 
-            var totalImage = await _genericRepository.GetEntitiesQuery().CountAsync();
 
             var tasks = images.Select(image => Task.Run(async () =>
             {
@@ -90,13 +91,13 @@ namespace Asana.Application.Common.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex.Message);
-                    _logger.LogInformation("Error! Cant Process Images!");
+                    _logger.LogError(ex,"ProccessImage Faild");
                 }
 
             })).ToList();
 
             await Task.WhenAll(tasks);
+            _logger.LogInformation("ProccessImage to be Successful");
 
         }
 
