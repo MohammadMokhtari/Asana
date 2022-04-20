@@ -51,14 +51,14 @@ namespace Asana.Application.Common.Services
             }
             catch (Exception ex)
             {
-              _logger.LogError(ex,"GetAddressAsycn Failed!");
+              _logger.LogError(ex,"GetAddressAsync Failed!");
               return (Result.Failure("CAN_NOT_GET_ADDRESSES"), null);
             }
         }
 
         public async Task<(Result result, AddressDto addressDto)> SetDefaultAddressAsync(long addressId)
         {
-            _logger.LogInformation("SetDefaultAddresAsync Executed!");
+            _logger.LogInformation("SetDefaultAddressAsync Executed!");
 
             try
             {
@@ -242,7 +242,7 @@ namespace Asana.Application.Common.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError("Update address Failed!");
+                _logger.LogError(ex,"Update address Failed!");
                 return Result.Failure("CAN_NOT_UPDATE_ADDRESS");
             }
 
@@ -252,14 +252,15 @@ namespace Asana.Application.Common.Services
         {
             try
             {
-                foreach (var ad in addresses)
+                var enumerable = addresses as Address[] ?? addresses.ToArray();
+                foreach (var ad in enumerable)
                 {
                     ad.IsDefault = false;
                 }
 
-                this._addressRepository.UpdateRangeEntity(addresses);
+                this._addressRepository.UpdateRangeEntity(enumerable);
 
-                var address = addresses.FirstOrDefault(a => a.Id == addressId);
+                var address = enumerable.FirstOrDefault(a => a.Id == addressId);
 
                 address.IsDefault = true;
 
