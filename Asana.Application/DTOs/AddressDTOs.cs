@@ -1,4 +1,5 @@
-﻿using Asana.Application.Common.Mappings;
+﻿using System.Collections.Generic;
+using Asana.Application.Common.Mappings;
 using Asana.Domain.Entities.Addresses;
 
 namespace Asana.Application.DTOs
@@ -80,5 +81,24 @@ namespace Asana.Application.DTOs
 
         public string RecipientPhoneNumber { get; set; }
 
+    }
+    
+    public class CreateInitAddressDto 
+    {
+        public IEnumerable<ProvinceDto> Provincs { get; set; }
+
+        public IEnumerable<CityDto> Cities { get; set; }
+    }
+
+    public class ProvinceDto : IMapFrom<Province>
+    {
+        public string Name { get; set; }
+    }
+
+    public class CityDto : IMapFrom<City>
+    {
+        public string Name { get; set; }
+        
+        public string ProvinceName { get; set; }
     }
 }
