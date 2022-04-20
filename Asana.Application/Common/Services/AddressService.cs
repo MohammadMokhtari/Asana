@@ -38,41 +38,59 @@ namespace Asana.Application.Common.Services
             _cityRepository = cityGenericRepository;
         }
 
-        public async Task<Result> GetAddressesAsync()
+        public async Task<(Result result,IEnumerable<AddressDto> addressDtos)> GetAddressesAsync()
         {
-            var addresses = await _addressRepository.GetEntitiesQuery()
-                .Where(a => a.UserId == _currentUserService.GuidUserId)
-                .ProjectTo<AddressDto>(_mapper.ConfigurationProvider).ToListAsync();
-
-            if (addresses is null)
-                return Result.Failure("COULD_NOT_GET_USER_ADDRESSES");
-
-            return Result.Success(addresses);
-        }
-
-        public async Task<Result> SetDefaultAddressAsync(long addressId)
-        {
-            var addresses = await this._addressRepository.GetEntitiesQuery()
-                .Where(a => a.UserId == _currentUserService.GuidUserId).ToListAsync();
-
-            if (addresses is not null)
+            _logger.LogInformation("GetAddressAsync Executed");
+            try
             {
-                try
-                {
-                    var result = await ChangeDefaultAddress(addresses, addressId);
-                    return Result.Success(result);
-                }
-                catch (Exception)
-                {
-                    return Result.Failure("COULD_NOT_SET_DEFAULT_ADDRESS" );
-                }
+                var addressesDtos = await _addressRepository.GetEntitiesQuery()
+                    .Where(a => a.UserId == _currentUserService.GuidUserId)
+                    .ProjectTo<AddressDto>(_mapper.ConfigurationProvider).ToListAsync();
+                _logger.LogInformation("GetAddresses to be Successful");
+                return (Result.Success(),addressesDtos);
             }
-
-            return Result.Failure("COULD_NOT_SET_DEFAULT_ADDRESS");
+            catch (Exception ex)
+            {
+              _logger.LogError(ex,"GetAddressAsycn Failed!");
+              return (Result.Failure("CAN_NOT_GET_ADDRESSES"), null);
+            }
         }
 
+        public async Task<(Result result, AddressDto addressDto)> SetDefaultAddressAsync(long addressId)
+        {
+            _logger.LogInformation("SetDefaultAddresAsync Executed!");
+
+            try
+            {
+                var addresses = await this._addressRepository.GetEntitiesQuery()
+                    .Where(a => a.UserId == _currentUserService.GuidUserId).ToListAsync();
+
+                if (addresses is not null)
+                {
+                    try
+                    {
+                        var addressDto = await ChangeDefaultAddress(addresses, addressId);
+                        return (Result.Success(), addressDto);
+                    }
+                    catch (Exception)
+                    {
+                        return (Result.Failure("COULD_NOT_SET_DEFAULT_ADDRESS"), null);
+                    }
+                }
+
+                return (Result.Failure("COULD_NOT_SET_DEFAULT_ADDRESS"), null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SetDefaultAddress Failed!");
+                return (Result.Failure("COULD_NOT_SET_DEFAULT_ADDRESS"), null);
+            }
+        }
+        
+        
         public async Task<Result> CreateAddressAsync(AddressCreateDto addressDto)
         {
+            _logger.LogInformation("CreateAddressAsync Executed");
             try
             {
                 var newAddress = new Address();
@@ -90,42 +108,120 @@ namespace Asana.Application.Common.Services
 
                 await _addressRepository.AddEntityAsync(newAddress);
                 await _addressRepository.SaveChangeAsync();
+                _logger.LogInformation("new Address Successfully Created");
                 return Result.Success();
             }
             catch (Exception ex)
             {
-
+                _logger.LogError(ex,"Create new Address Failed!");
                 return Result.Failure(ex.Message);
             }
         }
 
         public async Task<Result> DeleteAddressAsync(long addressId)
         {
+            _logger.LogInformation("DeleteAddressAsync Executed");
+            
             try
             {
                 await _addressRepository.RemoveEntityAsync(addressId);
                 await _addressRepository.SaveChangeAsync();
+                
+                _logger.LogInformation("Deleted Address to be Successful");
                 return Result.Success();
             }
             catch (Exception ex)
             {
-                return Result.Failure(ex.Message);
+                _logger.LogError(ex,"Deleted Address Failed!");
+                return Result.Failure("CAN_NOT_DELETE_ADDRESS");
+            }
+        }
+
+        public async Task<(Result result,IEnumerable<ProvinceDto> provinceDtos)> AllProvinceAsync()
+        {
+            try
+            {
+                var provinceDtos = await _provinceRepository.GetEntitiesQuery()
+                    .ProjectTo<ProvinceDto>(_mapper.ConfigurationProvider)
+                    .ToListAsync();
+
+                _logger.LogInformation("Get AllProvince to be successful");
+
+                return (Result.Success() , provinceDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Get AllProvinces Failed!");
+
+                return (Result.Failure("CAN_NOT_GET_ALL_PROVINCE"),null);
+            }
+        }
+
+        public async Task<(Result result,IEnumerable<CityDto> cityDtos)> AllCityAsync()
+        {
+            try
+            {
+                var cityDtos = await _cityRepository.GetEntitiesQuery()
+                    .ProjectTo<CityDto>(_mapper.ConfigurationProvider)
+                    .ToListAsync();
+                
+                _logger.LogInformation("Get AllCities to be successful");
+                
+                return (Result.Success(),cityDtos);
+
+            }
+            catch (Exception ex)
+            {              
+                _logger.LogError(ex, "Get AllCities Failed!");
+                return( Result.Failure("CAN_NOT_GET_ALL_CITIES"),null);
+            }
+        }
+
+        public async Task<(Result result, CreateInitAddressDto createInitAddressDto)> InitCreatedAddress()
+        {
+            _logger.LogInformation("InitCreatedAddress Executed");
+            try
+            {
+                var (cityResult, cityDtos) = await AllCityAsync();
+                var (provinceResult,provinceDtos) = await AllProvinceAsync();
+
+                if (cityResult.Succeeded && provinceResult.Succeeded)
+                {
+                    var addressInitialCreateDto = new CreateInitAddressDto()
+                    {
+                        Cities = cityDtos,
+                        Provincs = provinceDtos
+                    };
+                    _logger.LogInformation("InitCreatedAddress to be successful");
+                    return (Result.Success(), addressInitialCreateDto);
+                }
+
+                return (Result.Failure(), null);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,"InitCreatedAddress Failed!");
+                return (Result.Failure(), null);
             }
         }
 
         public async Task<Result> UpdateAddressAsync(AddressUpdateDto addressDto)
         {
-            var address = await _addressRepository.GetEntitiesQuery()
-                .Where(a=>a.UserId == _currentUserService.GuidUserId && a.Id == addressDto.Id)
-                .FirstOrDefaultAsync();
-
-            if (address is null)
-            {
-                return Result.Failure("NOT_FOUND_ADDRESS");
-            }
-
+            _logger.LogInformation("UpdateAddressAsync Executed");
+            
             try
             {
+                var address = await _addressRepository.GetEntitiesQuery()
+                    .Where(a=>a.UserId == _currentUserService.GuidUserId && a.Id == addressDto.Id)
+                    .FirstOrDefaultAsync();
+
+                if (address is null)
+                {
+                    _logger.LogWarning("not found address!");
+                    return Result.Failure("NOT_FOUND_ADDRESS");
+                }
+
                 address.AddressLine = addressDto.AddressLine;
                 address.CityName = addressDto.CityName;
                 address.ProvinceName = address.ProvinceName;
@@ -139,13 +235,15 @@ namespace Asana.Application.Common.Services
 
                 _addressRepository.UpdateEntity(address);
                 await _addressRepository.SaveChangeAsync();
-
+                
+                _logger.LogInformation("Update Address to be successful");
+                
                 return Result.Success();
             }
             catch (Exception ex)
             {
-
-                return Result.Failure(ex.Message);
+                _logger.LogError("Update address Failed!");
+                return Result.Failure("CAN_NOT_UPDATE_ADDRESS");
             }
 
         }
@@ -177,33 +275,6 @@ namespace Asana.Application.Common.Services
                 throw new Exception(ex.Message);
             }
         }
-
-        public async Task<Result> GetAllProvinceCityOptionsAsync()
-        {
-            try
-            {
-                var provinceOptions = await _provinceRepository.GetEntitiesQuery()
-                  .ProjectTo<ProvinceOptionDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync();
-
-                var cityOptions = await _cityRepository.GetEntitiesQuery()
-                    .ProjectTo<CityOptionDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync();
-
-                var response = new ProvinceOptionDtoResponse();
-                response.ProvinceOptions = provinceOptions;
-                response.CityOptions = cityOptions;
-
-                _logger.LogInformation("Get AllProvinceOption to be successful");
-
-                return Result.Success(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Get AllProvinceOption Faildee!");
-
-                return Result.Failure("CAN_NOT_GET_ALL_PROVINCE");
-            }
-        }
+        
     }
 }
