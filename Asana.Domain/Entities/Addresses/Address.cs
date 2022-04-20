@@ -47,8 +47,10 @@ namespace Asana.Domain.Entities.Addresses
 
 
         public string CityName { get; set; }
+
          
-        public string StateName { get; set; }
+        public string ProvinceName { get; set; }
+
         
         public Guid UserId { get; set; }
 
@@ -58,7 +60,7 @@ namespace Asana.Domain.Entities.Addresses
 
         public City City { get; set; }
 
-        public State State { get; set; }
+        public Province Province { get; set; }
 
         #endregion
 

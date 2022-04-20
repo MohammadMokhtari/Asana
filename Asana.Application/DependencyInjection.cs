@@ -20,7 +20,6 @@ namespace Asana.Application
 
             services.AddScoped<IMediaFileService, MediaFileService>();
             services.AddScoped<IAddressService, AddressService>();
-            services.AddScoped<IProvinceService, ProvinceService>();
             services.AddScoped<IUserMediaFileService, UserMediaFileService>();
             services.AddSingleton<IUrlBuilderService,UrlBuilderService>();
 

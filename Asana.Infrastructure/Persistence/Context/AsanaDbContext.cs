@@ -79,7 +79,7 @@ namespace Asana.Infrastructure.Persistence.Context
 
         public DbSet<Address> Addresses { get; set; }
 
-        public DbSet<State> States { get; set; }
+        public DbSet<Province> Provinces { get; set; }
 
         public DbSet<City> Cities { get; set; }
 

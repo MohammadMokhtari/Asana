@@ -6,6 +6,6 @@ namespace Asana.Application.Common.Interfaces
 {
     public interface IMediaFileService
     {
-        Task ProcessImageAsync(IEnumerable<ProcessImageModel> images, string subFolderName = default);
+        Task ProcessImageAsync(IEnumerable<ProcessImageModel> images, int totalImage,  string subFolderName = default );
     }
 }

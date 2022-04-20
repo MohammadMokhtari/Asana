@@ -68,115 +68,138 @@ namespace Asana.Infrastructure.Identity
 
         public async Task<Result> ConfirmEmailAsync(string token, string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return Result.Failure(new string[] { "USER_NOT_FOUND" });
+            _logger.LogInformation("ConfirmEmailAsync Executed!");
 
-            token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                    return Result.Failure(new string[] { "USER_NOT_FOUND" });
 
-            var result = await _userManager.ConfirmEmailAsync(user, token);
+                token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
 
-            return result.ToApplicationResult();
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                _logger.LogInformation("ConfirmEmailAsync To be successful");
+
+                return result.ToApplicationResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "confirmEmailAsync Faild!");
+                return Result.Failure(ex.Message);
+            }
         }
 
         public async Task<Result> ForgotPasswordAsync(string email)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            _logger.LogInformation("ForgotPasswordAsync Executed!");
+
+            try
             {
-                return Result.Failure(new string[] { "USER_NOT_FOUND" });
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    return Result.Failure(new string[] { "USER_NOT_FOUND" });
+                }
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    return Result.Failure(new string[] { "USER_NOT_ACTIVE" });
+                }
+
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                var uriBuilder = new UriBuilder(_configuration["ReturnPaths:ForgotPassword"]);
+
+                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+                query["code"] = code;
+                uriBuilder.Query = query.ToString()!;
+
+                var urlString = uriBuilder.ToString();
+
+                var emailMessage = new EmailMessage(
+                       new List<string>() { user.Email },
+                       " تغیر کلمه عبور ", urlString);
+
+                await _emailSender.SendEmailAsync(emailMessage, EmailType.ResetPassword);
+                _logger.LogInformation("ForgotPasswordAsync To be successful");
+
+                return Result.Success();
             }
-            if (!await _userManager.IsEmailConfirmedAsync(user))
+            catch (Exception ex)
             {
-                return Result.Failure(new string[] { "USER_NOT_ACTIVE" });
+                _logger.LogError(ex, "ForgotPasswordAsync Faild!");
+                return Result.Failure(ex.Message);
             }
-
-            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-            var uriBuilder = new UriBuilder(_configuration["ReturnPaths:ForgotPassword"]);
-
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-            query["code"] = code;
-            uriBuilder.Query = query.ToString()!;
-
-            var urlString = uriBuilder.ToString();
-
-            var emailMessage = new EmailMessage(
-                   new List<string>() { user.Email },
-                   " تغیر کلمه عبور ", urlString);
-
-            await _emailSender.SendEmailAsync(emailMessage, EmailType.ResetPassword);
-
-            return Result.Success();
         }
 
-        public async Task<Result> GetUserByIdAsync(string id)
+        public  Task<Result> GetUserByIdAsync(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            return Result.Success(new
-            {
-                email = user.Email,
-                userName = user.UserName,
-                avatarName = "",
-                walletBalance = 0, // TODO:: Calculate .... 
-                userScore = 0, // TODO::Calculate .....
-            });
+            throw new NotImplementedException();
         }
 
         public async Task<Result> LoginAsync(UserLoginDto userLogin)
         {
-            _logger.LogInformation("LoginAsyncRequest");
-            _logger.LogWarning(userLogin.Email, userLogin.Password);
+            _logger.LogInformation("LoginAsync Executed!");
 
-            var user = await _userManager.Users
-                .Where(u => u.Email == userLogin.Email)
-                    .Include(u => u.MediaFile)
-                    .Include(u => u.Addresses.Where(a => a.IsDefault))
-                        .SingleOrDefaultAsync();
-
-            if (user is null)
+            try
             {
-                return Result.Failure(new string[] { "USER_NOT_FOUND" });
-            }
-            var isCorrectPasword = await _userManager.CheckPasswordAsync(user, userLogin.Password);
+                var user = await _userManager.Users
+               .Where(u => u.Email == userLogin.Email)
+                   .Include(u => u.MediaFile)
+                   .Include(u => u.Addresses.Where(a => a.IsDefault))
+                       .SingleOrDefaultAsync();
 
-            if (!isCorrectPasword)
+                if (user is null)
+                {
+                    return Result.Failure("USER_NOT_FOUND");
+                }
+                var isCorrectPasword = await _userManager.CheckPasswordAsync(user, userLogin.Password);
+
+                if (!isCorrectPasword)
+                {
+                    return Result.Failure(new string[] { "INVALID_PASSWORD" });
+                }
+
+                if (!user.EmailConfirmed)
+                {
+                    return Result.Failure(new string[] { "USER_NOT_ACTIVE" });
+                }
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                var token = await _tokenService.GenrateJwtToken(user, userRoles.FirstOrDefault());
+
+                string photoUrl = _urlBuilderService.BuildAbsolutProfilePhotoUrl(user.MediaFile);
+
+                var userLoginResponseDto = user.MapToUserLoginResponsDto(
+                    0, //TODO:Calculated
+                    0, // TODO : Calculated
+                    photoUrl,
+                    token.accessToken,
+                    token.refreshToken,
+                    _bearerConfiguration.AccessTokenExpirationSeconds);
+
+                var addressDto = _mapper.Map<AddressDto>(user.Addresses.FirstOrDefault());
+
+                var response = new LoginResponseDto();
+                response.DefaultAddress = addressDto;
+                response.User = userLoginResponseDto;
+                _logger.LogInformation("LoginAsync To be successful!");
+
+                return Result.Success(response);
+            }
+            catch (Exception ex)
             {
-                return Result.Failure(new string[] { "INVALID_PASSWORD" });
+                _logger.LogError(ex, "ForgotPasswordAsync Faild!");
+                return Result.Failure(ex.Message);
             }
-
-            if (!user.EmailConfirmed)
-            {
-                return Result.Failure(new string[] { "USER_NOT_ACTIVE" });
-            }
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            var token = await _tokenService.GenrateJwtToken(user, userRoles.FirstOrDefault());
-
-            string photoUrl = _urlBuilderService.BuildAbsolutProfilePhotoUrl(user.MediaFile);
-
-            var userLoginResponseDto = user.MapToUserLoginResponsDto(
-                0,
-                0,
-                photoUrl,
-                token.accessToken,
-                token.refreshToken,
-                _bearerConfiguration.AccessTokenExpirationSeconds);
-
-            var addressDto = _mapper.Map<AddressDto>(user.Addresses.FirstOrDefault());
-
-            var response = new LoginResponseDto();
-            response.DefaultAddress = addressDto;
-            response.User = userLoginResponseDto;
-
-            return Result.Success(response);
 
         }
 
         public async Task<Result> RegisterAsync(UserRegisterDto userRegister)
         {
+            _logger.LogInformation("RegisterAsync Executed");
 
             var user = new ApplicationUser() { UserName = userRegister.Email, Email = userRegister.Email, CreatedOn = DateTime.Now };
             var result = await _userManager.CreateAsync(user, userRegister.Password);
@@ -208,7 +231,16 @@ namespace Asana.Infrastructure.Identity
                     new List<string>() { userRegister.Email },
                     " فعال سازی حساب کاربری ", urlString);
 
-                await _emailSender.SendEmailAsync(emailMessage, EmailType.VerifiedEmail);
+                try
+                {
+                    await _emailSender.SendEmailAsync(emailMessage, EmailType.VerifiedEmail);
+                    _logger.LogInformation("Send Activation email To be successful");
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,"Failded to Send Activation email");
+                }
             }
             else
             {
@@ -220,134 +252,199 @@ namespace Asana.Infrastructure.Identity
 
         public async Task<Result> ResetPasswordAsync(ResetPasswordDto passwordDto)
         {
-            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(passwordDto.Code));
+            _logger.LogInformation("ResetPasswordAsync Executed");
 
-            var user = await _userManager.FindByEmailAsync(passwordDto.Email);
-
-            if (user == null)
+            try
             {
-                return Result.Failure(new string[] { "USER_NOT_FOUND" });
+                var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(passwordDto.Code));
+
+                var user = await _userManager.FindByEmailAsync(passwordDto.Email);
+
+                if (user == null)
+                {
+                    return Result.Failure(new string[] { "USER_NOT_FOUND" });
+                }
+
+                var result = await _userManager.ResetPasswordAsync(user, code, passwordDto.Password);
+                _logger.LogInformation("Password Reset To be successful ");
+
+                return result.ToApplicationResult();
             }
-
-            var result = await _userManager.ResetPasswordAsync(user, code, passwordDto.Password);
-
-            return result.ToApplicationResult();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Reset Password Faild!");
+                throw;
+            }
         }
 
         public async Task<Result> GetUserInfoAsync()
         {
-            var user = await _userManager.Users
-                .Where(u => u.Id == _currentUserService.GuidUserId)
-                .Include(u => u.MediaFile)
-                    .Include(u => u.Addresses)
-                            .SingleOrDefaultAsync();
+            _logger.LogInformation("GetUserInfoAsync Executed!");
 
-            if (user is null)
-                return Result.Failure(new string[] { "USER_NOT_FOUND" });
+            try
+            {
+                var user = await _userManager.Users
+                    .Where(u => u.Id == _currentUserService.GuidUserId)
+                    .Include(u => u.MediaFile)
+                        .Include(u => u.Addresses)
+                                .SingleOrDefaultAsync();
 
-            var photoUrl = _urlBuilderService.BuildAbsolutProfilePhotoUrl(user.MediaFile);
+                if (user is null)
+                    return Result.Failure(new string[] { "USER_NOT_FOUND" });
 
-            var addresses = _mapper.Map<List<AddressDto>>(user.Addresses);
+                var photoUrl = _urlBuilderService.BuildAbsolutProfilePhotoUrl(user.MediaFile);
 
-            var userDto = user.MapToUserPersonalInfoDto(0, 0, photoUrl, addresses);
+                var addresses = _mapper.Map<List<AddressDto>>(user.Addresses);
 
-            return Result.Success(userDto);
+                var userDto = user.MapToUserPersonalInfoDto(0, 0, photoUrl, addresses);
+                _logger.LogInformation("GetUserInfo To be To be successful");
+
+                return Result.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetUserInfoAsync Faild!");
+                return Result.Failure("CAN_NOT_GET_USER_INFO");
+            }
         }
 
         public async Task<Result> UpdateUserAsync(UserUpdatDto userDto)
         {
-            var user = await _userManager.FindByIdAsync(_currentUserService.UserId);
+            _logger.LogInformation("UpdateUserAsync Executed");
 
-            user.FirstName = userDto.FirstName;
-            user.LastName = userDto.LastName;
-            user.NationalCode = userDto.NationalCode;
-            user.PhoneNumber = userDto.PhoneNumber;
-            user.CreditCardNumber = userDto.CreditCardNumber;
-            user.Gender = Enum.Parse<Gender>(userDto.Gender);
-            user.ModifiedOn = DateTime.Now;
+            try
+            {
+                var user = await _userManager.FindByIdAsync(_currentUserService.UserId);
 
-            var result = await _userManager.UpdateAsync(user);
+                user.FirstName = userDto.FirstName;
+                user.LastName = userDto.LastName;
+                user.NationalCode = userDto.NationalCode;
+                user.PhoneNumber = userDto.PhoneNumber;
+                user.CreditCardNumber = userDto.CreditCardNumber;
+                user.Gender = Enum.Parse<Gender>(userDto.Gender);
+                user.ModifiedOn = DateTime.Now;
 
-            return result.ToApplicationResult();
+                var result = await _userManager.UpdateAsync(user);
+                _logger.LogInformation("UpdateUser to be SuccessFul");
+
+                return result.ToApplicationResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Update User Failde!");
+                return Result.Failure("CAN_NOT_UPDATE_USER");
+            }
         }
 
         public async Task<Result> UpdateUserPhotoAsync(IFormFile photo)
         {
-            var imageFile = new ProcessImageModel()
-            {
-                FileName = photo.FileName,
-                Type = photo.ContentType,
-                Content = photo.OpenReadStream()
-            };
+            _logger.LogInformation("UpdateUserPhotoAsync Executed");
 
-            return await _userMediaFileService.UpdatUserPhotoAsync(imageFile);
+            try
+            {
+                var imageFile = new ProcessImageModel()
+                {
+                    FileName = photo.FileName,
+                    Type = photo.ContentType,
+                    Content = photo.OpenReadStream()
+                };
+
+                _logger.LogInformation("UpdateUserPhoto to be Successful");
+                return await _userMediaFileService.UpdatUserPhotoAsync(imageFile);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UpdateUserPhoto Failde!");
+                return Result.Failure("CAN_NOT_UPDATE_USER_PHOTO");
+            }
         }
 
         public async Task<Result> RemoveUserPhotoAsync()
         {
-            return await _userMediaFileService.DeleteUserPhotoAsync();
+            _logger.LogInformation("RemoveUserPhotoAsync Executed");
+
+            try
+            {
+                _logger.LogInformation("RemoveUserPhoto to be successfull");
+                return await _userMediaFileService.DeleteUserPhotoAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,"RemoveUserPhoto Failde!");
+                return Result.Failure("CAN_NOT_REMOVE_USER_PHOTO");
+            }
         }
 
         public async Task<Result> RefreshTokenAsync(string accessToken, string refreshToken)
         {
+            _logger.LogInformation("RefreshTokenAsync Executed");
 
-            if(string.IsNullOrWhiteSpace(accessToken) && string.IsNullOrWhiteSpace(refreshToken))
+            try
             {
-                return Result.Failure("INVALID_TOKEN");
+                if (string.IsNullOrWhiteSpace(accessToken) && string.IsNullOrWhiteSpace(refreshToken))
+                {
+                    return Result.Failure("INVALID_TOKEN");
+                }
+
+                var validatedtoken = _tokenService.GetClaimsPrincipalFormToken(accessToken);
+
+                if (validatedtoken == null)
+                {
+                    return Result.Failure("INVALID_TOKEN");
+                }
+
+                var expiredateunix = long.Parse(validatedtoken.Claims.Single(s => s.Type == JwtRegisteredClaimNames.Exp).Value);
+
+                var expiredatetimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                  .AddSeconds(expiredateunix);
+
+                if (expiredatetimeUtc > DateTime.UtcNow)
+                    return Result.Failure("TOKEN_HAS_NOT_EXPIRED");
+
+                var jti = validatedtoken.Claims.Single(s => s.Type == JwtRegisteredClaimNames.Jti).Value;
+
+                var storerefreshtoken = await _tokenService.FindRefreshToken(refreshToken);
+
+
+                if (refreshToken is null)
+                    return Result.Failure("TOKEN_DOES_NOT_EXIST");
+
+                if (DateTime.UtcNow > storerefreshtoken.RefreshTokenExpiresDate)
+                    return Result.Failure("TOKEN_HAS_EXPIRED");
+
+                if (storerefreshtoken.Invalidated)
+                    return Result.Failure("TOKEN_HAS_INVALIDATED");
+
+                if (storerefreshtoken.Used)
+                    return Result.Failure("TOKEN_HAS_USED");
+
+                if (storerefreshtoken.JwtId != jti)
+                    return Result.Failure("TOKEN_HAS_NOT_MATCH_THIS_JWT");
+
+                storerefreshtoken.Used = true;
+                _tokenRepository.UpdateEntity(storerefreshtoken);
+                await _tokenRepository.SaveChangeAsync();
+
+                var user = await _userManager.FindByIdAsync(validatedtoken.Claims.Single(s => s.Type == ClaimTypes.NameIdentifier).Value);
+                var roles = await _userManager.GetRolesAsync(user);
+
+                var tokens = await _tokenService.GenrateJwtToken(user, roles.FirstOrDefault());
+
+
+                var response = new RefreshTokenResponseDto()
+                {
+                    AccessToken = tokens.accessToken,
+                    RefreshToken = tokens.refreshToken
+                };
+
+                _logger.LogInformation("RefreshToken to be successful");
+                return Result.Success(response);
             }
-
-            var validatedtoken = _tokenService.GetClaimsPrincipalFormToken(accessToken);
-
-            if (validatedtoken == null)
+            catch (Exception ex)
             {
-                return Result.Failure("INVALID_TOKEN");
+                _logger.LogError(ex, "RefreshToken Failde!");
+                return Result.Failure("CAN_NOT_PROCCESS_REFRESH_TOKEN");
             }
-
-            var expiredateunix = long.Parse(validatedtoken.Claims.Single(s => s.Type == JwtRegisteredClaimNames.Exp).Value);
-
-            var expiredatetimeUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-              .AddSeconds(expiredateunix);
-
-            if (expiredatetimeUtc > DateTime.UtcNow)
-                return Result.Failure("TOKEN_HAS_NOT_EXPIRED");
-
-            var jti = validatedtoken.Claims.Single(s => s.Type == JwtRegisteredClaimNames.Jti).Value;
-
-            var storerefreshtoken = await _tokenService.FindRefreshToken(refreshToken);
-
-
-            if (refreshToken is null)
-                return Result.Failure("TOKEN_DOES_NOT_EXIST");
-
-            if (DateTime.UtcNow > storerefreshtoken.RefreshTokenExpiresDate)
-                 return Result.Failure("TOKEN_HAS_EXPIRED");
-            
-            if (storerefreshtoken.Invalidated)
-                return Result.Failure("TOKEN_HAS_INVALIDATED");
-            
-            if (storerefreshtoken.Used)
-                return Result.Failure("TOKEN_HAS_USED");
-
-            if (storerefreshtoken.JwtId !=jti)
-                return Result.Failure("TOKEN_HAS_NOT_MATCH_THIS_JWT");
-
-            storerefreshtoken.Used = true;
-            _tokenRepository.UpdateEntity(storerefreshtoken);
-            await _tokenRepository.SaveChangeAsync();
-
-            var user = await _userManager.FindByIdAsync(validatedtoken.Claims.Single(s => s.Type == ClaimTypes.NameIdentifier).Value);
-            var roles = await _userManager.GetRolesAsync(user);
-
-             var tokens = await _tokenService.GenrateJwtToken(user, roles.FirstOrDefault());
-
-
-            var response = new RefreshTokenResponseDto()
-            {
-                AccessToken = tokens.accessToken,
-                RefreshToken = tokens.refreshToken
-            };
-
-            return Result.Success(response);
 
         }
 

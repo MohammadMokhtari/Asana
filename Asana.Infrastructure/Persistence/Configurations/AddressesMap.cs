@@ -11,9 +11,9 @@ namespace Asana.Infrastructure.Persistence.Configurations
             builder.HasQueryFilter(a => !a.IsDelete);
 
             builder
-                .HasOne(a => a.State)
+                .HasOne(a => a.Province)
                  .WithMany(s => s.Addresses)
-                 .HasForeignKey(a => a.StateName)
+                 .HasForeignKey(a => a.ProvinceName)
                  .HasPrincipalKey(a => a.Name);
 
             builder
@@ -33,15 +33,15 @@ namespace Asana.Infrastructure.Persistence.Configurations
             builder
                 .HasOne(c => c.State)
                 .WithMany(s => s.Cities)
-                .HasForeignKey(c => c.StateName)
+                .HasForeignKey(c => c.ProvinceName)
                 .HasPrincipalKey(s => s.Name);
 
         }
     }
 
-    public class StateMap : IEntityTypeConfiguration<State>
+    public class StateMap : IEntityTypeConfiguration<Province>
     {
-        public void Configure(EntityTypeBuilder<State> builder)
+        public void Configure(EntityTypeBuilder<Province> builder)
         {
             builder.HasQueryFilter(s => !s.IsDelete);
         }

@@ -4,14 +4,16 @@ using Asana.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Asana.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AsanaDbContext))]
-    partial class AsanaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220419184015_Rename State Table to Province")]
+    partial class RenameStateTabletoProvince
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,12 +118,12 @@ namespace Asana.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("ProvinceName")
+                    b.Property<string>("StateName")
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProvinceName");
+                    b.HasIndex("StateName");
 
                     b.ToTable("Cities");
                 });
@@ -490,7 +492,7 @@ namespace Asana.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("Asana.Domain.Entities.Addresses.Province", "State")
                         .WithMany("Cities")
-                        .HasForeignKey("ProvinceName")
+                        .HasForeignKey("StateName")
                         .HasPrincipalKey("Name");
 
                     b.Navigation("State");
