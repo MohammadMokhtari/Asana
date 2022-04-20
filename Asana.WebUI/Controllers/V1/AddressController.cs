@@ -1,9 +1,9 @@
-﻿using Asana.Application.Common.Interfaces;
+﻿using System.Threading.Tasks;
+using Asana.Application.Common.Interfaces;
 using Asana.Application.DTOs;
 using Asana.Application.Utilities.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Asana.WebUI.Controllers
 {
@@ -17,8 +17,8 @@ namespace Asana.WebUI.Controllers
             _addressService = addressService;
         }
 
-        [HttpGet()]
-        public async Task<IActionResult> index()
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
             var (result,addressDtos) = await _addressService.GetAddressesAsync();
 
@@ -71,8 +71,6 @@ namespace Asana.WebUI.Controllers
             return result.Succeeded ? JsonResponseStatus.Success() :
                 JsonResponseStatus.Error();
         }
-
-      
-
+        
     }
 }
