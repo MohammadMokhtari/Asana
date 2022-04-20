@@ -20,20 +20,20 @@ namespace Asana.WebUI.Controllers
         [HttpGet()]
         public async Task<IActionResult> index()
         {
-            var result = await _addressService.GetAddressesAsync();
+            var (result,addressDtos) = await _addressService.GetAddressesAsync();
 
-            return result.Succeeded ? JsonResponseStatus.Success(result.Value)
+            return result.Succeeded ? JsonResponseStatus.Success(addressDtos)
                 : JsonResponseStatus.BadRequest(result.Errors);
         }
 
-        [HttpGet("setAddress/{locationId}")]
-        public async Task<IActionResult> SetDefaultAddress(long locationId)
+        [HttpGet("setAddress/{id}")]
+        public async Task<IActionResult> SetDefaultAddress(long id)
         {
 
-            var result = await _addressService.
-                SetDefaultAddressAsync(locationId);
+            var (result,addressDto) = await _addressService.
+                SetDefaultAddressAsync(id);
 
-            return result.Succeeded ? JsonResponseStatus.Success(result.Value)
+            return result.Succeeded ? JsonResponseStatus.Success(addressDto)
                 : JsonResponseStatus.BadRequest(result.Errors);
         }
 
@@ -43,6 +43,15 @@ namespace Asana.WebUI.Controllers
             var result = await _addressService.CreateAddressAsync(addressDto);
 
             return result.Succeeded ? JsonResponseStatus.SuccessCreated() :
+                JsonResponseStatus.Error(result.Errors);
+        }
+        
+        [HttpGet("create")]
+        public async Task<IActionResult> CreateAddress()
+        {
+            var (result , createInitAddressDto) = await _addressService.InitCreatedAddress();
+
+            return result.Succeeded ? JsonResponseStatus.Success(createInitAddressDto) :
                 JsonResponseStatus.Error(result.Errors);
         }
 
@@ -63,14 +72,7 @@ namespace Asana.WebUI.Controllers
                 JsonResponseStatus.Error();
         }
 
-        [HttpGet("allProvince")]
-        public async Task<IActionResult> AllProvince()
-        {
-            var result = await _addressService.GetAllProvinceCityOptionsAsync();
-
-            return result.Succeeded ? JsonResponseStatus.Success(result.Value) :
-                            JsonResponseStatus.Error();
-        }
+      
 
     }
 }
