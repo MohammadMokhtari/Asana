@@ -5,9 +5,10 @@ using Asana.Application.Utilities.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Asana.WebUI.Controllers
+namespace Asana.WebUI.Controllers.V1
 {
     [Authorize]
+    [ApiVersion("1.0")]
     public class AddressController : ApiControllerBase
     {
         private readonly IAddressService _addressService;
@@ -37,7 +38,7 @@ namespace Asana.WebUI.Controllers
                 : JsonResponseStatus.BadRequest(result.Errors);
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<IActionResult> CreateAddress(AddressCreateDto addressDto)
         {
             var result = await _addressService.CreateAddressAsync(addressDto);
