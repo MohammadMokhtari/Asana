@@ -6,6 +6,7 @@ using Asana.Domain.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -22,13 +23,15 @@ namespace Asana.Application.Common.Services
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly ILogger<AddressService> _logger;
-        
+        private readonly IMemoryCache _memoryCache;
+
         public AddressService(IGenericRepository<Address> addressRepository,
             ICurrentUserService currentUserService,
             IMapper mapper,
             IGenericRepository<Province> provinceRepository,
             IGenericRepository<City> cityGenericRepository,
-            ILogger<AddressService> logger)
+            ILogger<AddressService> logger,
+            IMemoryCache memoryCache)
         {
             _addressRepository = addressRepository;
             _currentUserService = currentUserService;
@@ -36,23 +39,29 @@ namespace Asana.Application.Common.Services
             _logger = logger;
             _provinceRepository = provinceRepository;
             _cityRepository = cityGenericRepository;
+            _memoryCache = memoryCache;
         }
 
-        public async Task<(Result result,IEnumerable<AddressDto> addressDtos)> GetAddressesAsync()
+        private readonly string initCreatedAddressCacheKey = "initCreatedAddressCacheKey";
+        private readonly string provincesCacheKey = "ProvincesCacheKey";
+        private readonly string citiesCacheKey = "CitiesCacheKey";
+
+        public async Task<(Result result, IEnumerable<AddressDto> addressDtos)> GetAddressesAsync()
         {
             _logger.LogInformation("GetAddressAsync Executed");
             try
             {
                 var addressesDtos = await _addressRepository.GetEntitiesQuery()
                     .Where(a => a.UserId == _currentUserService.GuidUserId)
-                    .ProjectTo<AddressDto>(_mapper.ConfigurationProvider).ToListAsync();
+                    .ProjectTo<AddressDto>(_mapper.ConfigurationProvider).AsNoTracking().ToListAsync();
+
                 _logger.LogInformation("GetAddresses to be Successful");
-                return (Result.Success(),addressesDtos);
+                return (Result.Success(), addressesDtos);
             }
             catch (Exception ex)
             {
-              _logger.LogError(ex,"GetAddressAsync Failed!");
-              return (Result.Failure("CAN_NOT_GET_ADDRESSES"), null);
+                _logger.LogError(ex, "GetAddressAsync Failed!");
+                return (Result.Failure("CAN_NOT_GET_ADDRESSES"), null);
             }
         }
 
@@ -63,7 +72,9 @@ namespace Asana.Application.Common.Services
             try
             {
                 var addresses = await this._addressRepository.GetEntitiesQuery()
-                    .Where(a => a.UserId == _currentUserService.GuidUserId).ToListAsync();
+                    .Where(a => a.UserId == _currentUserService.GuidUserId)
+                      .AsNoTracking()
+                        .ToListAsync();
 
                 if (addresses is not null)
                 {
@@ -72,8 +83,9 @@ namespace Asana.Application.Common.Services
                         var addressDto = await ChangeDefaultAddress(addresses, addressId);
                         return (Result.Success(), addressDto);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        _logger.LogError(ex, "ChangeDefaultAddress Failed!");
                         return (Result.Failure("COULD_NOT_SET_DEFAULT_ADDRESS"), null);
                     }
                 }
@@ -86,8 +98,8 @@ namespace Asana.Application.Common.Services
                 return (Result.Failure("COULD_NOT_SET_DEFAULT_ADDRESS"), null);
             }
         }
-        
-        
+
+
         public async Task<Result> CreateAddressAsync(AddressCreateDto addressDto)
         {
             _logger.LogInformation("CreateAddressAsync Executed");
@@ -113,7 +125,7 @@ namespace Asana.Application.Common.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"Create new Address Failed!");
+                _logger.LogError(ex, "Create new Address Failed!");
                 return Result.Failure(ex.Message);
             }
         }
@@ -121,69 +133,107 @@ namespace Asana.Application.Common.Services
         public async Task<Result> DeleteAddressAsync(long addressId)
         {
             _logger.LogInformation("DeleteAddressAsync Executed");
-            
+
             try
             {
                 await _addressRepository.RemoveEntityAsync(addressId);
                 await _addressRepository.SaveChangeAsync();
-                
+
                 _logger.LogInformation("Deleted Address to be Successful");
                 return Result.Success();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"Deleted Address Failed!");
+                _logger.LogError(ex, "Deleted Address Failed!");
                 return Result.Failure("CAN_NOT_DELETE_ADDRESS");
             }
         }
 
-        public async Task<(Result result,IEnumerable<ProvinceDto> provinceDtos)> AllProvinceAsync()
+        public async Task<(Result result, IEnumerable<ProvinceDto> provinceDtos)> AllProvinceAsync()
         {
+            _logger.LogInformation("AllProvinceAsync Executed");
+
             try
             {
+                if (_memoryCache.TryGetValue(provincesCacheKey, out IEnumerable<ProvinceDto> provinces))
+                {
+                    _logger.LogInformation("Get AllProvince from MemoryCache to be successful");
+                    return (Result.Success(), provinces);
+                }
+
                 var provinceDtos = await _provinceRepository.GetEntitiesQuery()
-                    .ProjectTo<ProvinceDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync();
+                 .ProjectTo<ProvinceDto>(_mapper.ConfigurationProvider)
+                  .AsNoTracking()
+                   .ToListAsync();
+
+                var cahceOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromHours(12))
+                    .SetSlidingExpiration(TimeSpan.FromDays(1));
+
+                _memoryCache.Set(provincesCacheKey, provinceDtos);
+                _logger.LogInformation("Set AllProvince to MemoryCache has successful");
 
                 _logger.LogInformation("Get AllProvince to be successful");
 
-                return (Result.Success() , provinceDtos);
+                return (Result.Success(), provinceDtos);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Get AllProvinces Failed!");
 
-                return (Result.Failure("CAN_NOT_GET_ALL_PROVINCE"),null);
+                return (Result.Failure("CAN_NOT_GET_ALL_PROVINCE"), null);
             }
         }
 
-        public async Task<(Result result,IEnumerable<CityDto> cityDtos)> AllCityAsync()
+        public async Task<(Result result, IEnumerable<CityDto> cityDtos)> AllCityAsync()
         {
             try
             {
+             
+                if(_memoryCache.TryGetValue(citiesCacheKey,out IEnumerable<CityDto> Cities))
+                {
+                    _logger.LogInformation("Get AllCities from MemoryCache to be successful");
+                    return (Result.Success(), Cities);
+                }
+
                 var cityDtos = await _cityRepository.GetEntitiesQuery()
-                    .ProjectTo<CityDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync();
-                
+                  .ProjectTo<CityDto>(_mapper.ConfigurationProvider)
+                  .AsNoTracking()
+                  .ToListAsync();
+
+                var cacheOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromHours(12))
+                    .SetAbsoluteExpiration(TimeSpan.FromDays(1));
+
+                _memoryCache.Set(citiesCacheKey, cityDtos);
+                _logger.LogInformation("Set AllCities to MemoryCache has successful");
+
                 _logger.LogInformation("Get AllCities to be successful");
-                
-                return (Result.Success(),cityDtos);
+
+                return (Result.Success(), cityDtos);
 
             }
             catch (Exception ex)
-            {              
+            {
                 _logger.LogError(ex, "Get AllCities Failed!");
-                return( Result.Failure("CAN_NOT_GET_ALL_CITIES"),null);
+                return (Result.Failure("CAN_NOT_GET_ALL_CITIES"), null);
             }
         }
 
         public async Task<(Result result, CreateInitAddressDto createInitAddressDto)> InitCreatedAddress()
         {
             _logger.LogInformation("InitCreatedAddress Executed");
+
             try
             {
+                if (_memoryCache.TryGetValue(initCreatedAddressCacheKey, out CreateInitAddressDto InitialCreateDto))
+                {
+                    _logger.LogInformation("Get InitCreatedAddress from MemoryCache to be successful");
+                    return (Result.Success(), InitialCreateDto);
+                }
+
                 var (cityResult, cityDtos) = await AllCityAsync();
-                var (provinceResult,provinceDtos) = await AllProvinceAsync();
+                var (provinceResult, provinceDtos) = await AllProvinceAsync();
 
                 if (cityResult.Succeeded && provinceResult.Succeeded)
                 {
@@ -192,7 +242,15 @@ namespace Asana.Application.Common.Services
                         Cities = cityDtos,
                         Provincs = provinceDtos
                     };
+
+                    var chachOptions = new MemoryCacheEntryOptions()
+                   .SetSlidingExpiration(TimeSpan.FromHours(12))
+                   .SetAbsoluteExpiration(TimeSpan.FromDays(1));
+
+                    _memoryCache.Set(initCreatedAddressCacheKey, addressInitialCreateDto);
+
                     _logger.LogInformation("InitCreatedAddress to be successful");
+
                     return (Result.Success(), addressInitialCreateDto);
                 }
 
@@ -201,7 +259,7 @@ namespace Asana.Application.Common.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"InitCreatedAddress Failed!");
+                _logger.LogError(ex, "InitCreatedAddress Failed!");
                 return (Result.Failure(), null);
             }
         }
@@ -209,11 +267,11 @@ namespace Asana.Application.Common.Services
         public async Task<Result> UpdateAddressAsync(AddressUpdateDto addressDto)
         {
             _logger.LogInformation("UpdateAddressAsync Executed");
-            
+
             try
             {
                 var address = await _addressRepository.GetEntitiesQuery()
-                    .Where(a=>a.UserId == _currentUserService.GuidUserId && a.Id == addressDto.Id)
+                    .Where(a => a.UserId == _currentUserService.GuidUserId && a.Id == addressDto.Id)
                     .FirstOrDefaultAsync();
 
                 if (address is null)
@@ -235,20 +293,20 @@ namespace Asana.Application.Common.Services
 
                 _addressRepository.UpdateEntity(address);
                 await _addressRepository.SaveChangeAsync();
-                
+
                 _logger.LogInformation("Update Address to be successful");
-                
+
                 return Result.Success();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"Update address Failed!");
+                _logger.LogError(ex, "Update address Failed!");
                 return Result.Failure("CAN_NOT_UPDATE_ADDRESS");
             }
 
         }
 
-        private async Task<AddressDto> ChangeDefaultAddress(IEnumerable<Address> addresses,long addressId)
+        private async Task<AddressDto> ChangeDefaultAddress(IEnumerable<Address> addresses, long addressId)
         {
             try
             {
@@ -276,6 +334,6 @@ namespace Asana.Application.Common.Services
                 throw new Exception(ex.Message);
             }
         }
-        
+
     }
 }
