@@ -27,6 +27,16 @@ namespace Asana.WebUI.Controllers.V1
                 : JsonResponseStatus.BadRequest(result.Errors);
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> Index(AddressCreateDto addressDto)
+        {
+            var result = await _addressService.CreateAddressAsync(addressDto);
+
+            return result.Succeeded ? JsonResponseStatus.SuccessCreated() :
+                JsonResponseStatus.Error(result.Errors);
+        }
+
         [HttpGet("setAddress/{id}")]
         public async Task<IActionResult> SetDefaultAddress(long id)
         {
@@ -38,14 +48,6 @@ namespace Asana.WebUI.Controllers.V1
                 : JsonResponseStatus.BadRequest(result.Errors);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateAddress(AddressCreateDto addressDto)
-        {
-            var result = await _addressService.CreateAddressAsync(addressDto);
-
-            return result.Succeeded ? JsonResponseStatus.SuccessCreated() :
-                JsonResponseStatus.Error(result.Errors);
-        }
         
         [HttpGet("create")]
         public async Task<IActionResult> CreateAddress()
