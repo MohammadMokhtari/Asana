@@ -18,8 +18,6 @@ namespace Asana.Application.DTOs
         public string Email { get; set; }
 
         public string Password { get; set; }
-
-        public bool IsRemember { get; set; }
     }
 
     public class ForgotPasswordDto
@@ -142,6 +140,12 @@ namespace Asana.Application.DTOs
         public string RefreshToken { get; set; }
 
         public int TokenExpiresIn { get; set; }
+
+    }
+
+    public class RefreshTokenRevokeDto
+    {
+        public string RefreshToken { get; set; }
 
     }
 

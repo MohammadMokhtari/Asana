@@ -137,6 +137,16 @@ namespace Asana.WebUI.Controllers.V1
             return result.Succeeded ? JsonResponseStatus.Success(result.Value) :
                 JsonResponseStatus.BadRequest(result.Errors);
         }
+
+        [HttpPost("revokeToken")]
+        public async Task<IActionResult> RevokeRefreshToken(RefreshTokenRevokeDto refreshTokenRevokeDto)
+        {
+            var result = await _identityService
+                  .RevokeTokenAsync(refreshTokenRevokeDto.RefreshToken);
+
+            return result.Succeeded ? JsonResponseStatus.Success(result.Value) :
+                JsonResponseStatus.BadRequest(result.Errors);
+        }
     }
 
 }

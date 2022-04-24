@@ -28,5 +28,7 @@ namespace Asana.Application.Common.Interfaces
         Task<Result> UpdateUserPhotoAsync(IFormFile photo);
 
         Task<Result> RemoveUserPhotoAsync();
+        
+        Task<Result> RevokeTokenAsync(string refreshToken);
     }
 }

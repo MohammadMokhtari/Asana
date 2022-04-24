@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,8 @@ namespace Asana.Infrastructure.Identity
         public ClaimsPrincipal GetClaimsPrincipalFormToken(string token);
 
         public Task<RefreshToken> FindRefreshToken(string refreshToken);
+
+        public Task RevokeRefreshTokenAsync(string refreshToken);
     }
 
     public class TokenService : ITokenService
@@ -123,10 +126,28 @@ namespace Asana.Infrastructure.Identity
                 }
                 return principal;
             }
-            catch(Exception ex)
+            catch (Exception)
             {
                 return null;
             }
+        }
+
+        public async Task RevokeRefreshTokenAsync(string refreshToken)
+        {
+
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return;
+            }
+
+            var token = await _tokenRepository.GetEntitiesQuery()
+                  .Where(t => t.Token == refreshToken).FirstOrDefaultAsync();
+
+            token.Used = true;
+            token.Invalidated = true;
+            _tokenRepository.UpdateEntity(token);
+
+            await _tokenRepository.SaveChangeAsync();
         }
 
         private bool IsJwtWithValidSecurityAlgoritjm(SecurityToken securityToken)

@@ -133,7 +133,7 @@ namespace Asana.Infrastructure.Identity
             }
         }
 
-        public  Task<Result> GetUserByIdAsync(string id)
+        public Task<Result> GetUserByIdAsync(string id)
         {
             throw new NotImplementedException();
         }
@@ -239,7 +239,7 @@ namespace Asana.Infrastructure.Identity
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,"Failded to Send Activation email");
+                    _logger.LogError(ex, "Failded to Send Activation email");
                 }
             }
             else
@@ -370,7 +370,7 @@ namespace Asana.Infrastructure.Identity
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"RemoveUserPhoto Failde!");
+                _logger.LogError(ex, "RemoveUserPhoto Failde!");
                 return Result.Failure("CAN_NOT_REMOVE_USER_PHOTO");
             }
         }
@@ -449,5 +449,24 @@ namespace Asana.Infrastructure.Identity
 
         }
 
+        public async Task<Result> RevokeTokenAsync(string refreshToken)
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return Result.Failure("TOKEN_INVALID");
+            }
+
+            try
+            {
+                await _tokenService.RevokeRefreshTokenAsync(refreshToken);
+                _logger.LogInformation("RevokeRefreshToken To be Success");
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "RevokeRefreshToken Faild!");
+                return Result.Failure("CAN_NOT_REVOKE_REFRESH_TOKEN");
+            }
+        }
     }
 }
