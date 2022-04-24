@@ -1,9 +1,7 @@
 ﻿using Asana.Domain.Entities.Media;
-using Asana.Domain.Entities.Token;
 using Asana.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
 
 namespace Asana.Infrastructure.Persistence.Configurations
 {
@@ -25,6 +23,12 @@ namespace Asana.Infrastructure.Persistence.Configurations
                 .HasMany(a => a.RefreshToken)
                 .WithOne()
                 .HasForeignKey(r => r.UserId);
+
+            builder
+                .HasMany(a => a.Reviews)
+                .WithOne()
+                .HasForeignKey(r => r.UserId)
+                .IsRequired();
         }
     }
 }
