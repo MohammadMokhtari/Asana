@@ -406,7 +406,7 @@ namespace Asana.Infrastructure.Identity
                 var storerefreshtoken = await _tokenService.FindRefreshToken(refreshToken);
 
 
-                if (refreshToken is null)
+                if (storerefreshtoken is null)
                     return Result.Failure("TOKEN_DOES_NOT_EXIST");
 
                 if (DateTime.UtcNow > storerefreshtoken.RefreshTokenExpiresDate)
@@ -434,7 +434,8 @@ namespace Asana.Infrastructure.Identity
                 var response = new RefreshTokenResponseDto()
                 {
                     AccessToken = tokens.accessToken,
-                    RefreshToken = tokens.refreshToken
+                    RefreshToken = tokens.refreshToken,
+                    TokenExpiresIn = _bearerConfiguration.AccessTokenExpirationSeconds
                 };
 
                 _logger.LogInformation("RefreshToken to be successful");

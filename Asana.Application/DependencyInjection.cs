@@ -23,6 +23,8 @@ namespace Asana.Application
             services.AddScoped<IUserMediaFileService, UserMediaFileService>();
             services.AddSingleton<IUrlBuilderService,UrlBuilderService>();
 
+            services.AddMemoryCache();
+
             return services;
         }
     }

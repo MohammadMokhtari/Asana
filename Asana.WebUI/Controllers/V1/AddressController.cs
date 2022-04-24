@@ -1,13 +1,14 @@
-﻿using Asana.Application.Common.Interfaces;
+﻿using System.Threading.Tasks;
+using Asana.Application.Common.Interfaces;
 using Asana.Application.DTOs;
 using Asana.Application.Utilities.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
-namespace Asana.WebUI.Controllers
+namespace Asana.WebUI.Controllers.V1
 {
     [Authorize]
+    [ApiVersion("1.0")]
     public class AddressController : ApiControllerBase
     {
         private readonly IAddressService _addressService;
@@ -17,13 +18,23 @@ namespace Asana.WebUI.Controllers
             _addressService = addressService;
         }
 
-        [HttpGet()]
-        public async Task<IActionResult> index()
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
             var (result,addressDtos) = await _addressService.GetAddressesAsync();
 
             return result.Succeeded ? JsonResponseStatus.Success(addressDtos)
                 : JsonResponseStatus.BadRequest(result.Errors);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Index(AddressCreateDto addressDto)
+        {
+            var result = await _addressService.CreateAddressAsync(addressDto);
+
+            return result.Succeeded ? JsonResponseStatus.SuccessCreated() :
+                JsonResponseStatus.Error(result.Errors);
         }
 
         [HttpGet("setAddress/{id}")]
@@ -37,14 +48,6 @@ namespace Asana.WebUI.Controllers
                 : JsonResponseStatus.BadRequest(result.Errors);
         }
 
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateAddress(AddressCreateDto addressDto)
-        {
-            var result = await _addressService.CreateAddressAsync(addressDto);
-
-            return result.Succeeded ? JsonResponseStatus.SuccessCreated() :
-                JsonResponseStatus.Error(result.Errors);
-        }
         
         [HttpGet("create")]
         public async Task<IActionResult> CreateAddress()
@@ -71,8 +74,6 @@ namespace Asana.WebUI.Controllers
             return result.Succeeded ? JsonResponseStatus.Success() :
                 JsonResponseStatus.Error();
         }
-
-      
-
+        
     }
 }

@@ -1,4 +1,7 @@
-﻿using Asana.Application.Common.Interfaces;
+﻿using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Asana.Application.Common.Interfaces;
 using Asana.Application.Common.Models;
 using Asana.Application.Common.Validations;
 using Asana.Application.DTOs;
@@ -6,21 +9,19 @@ using Asana.Application.Utilities.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
-namespace Asana.WebUI.Controllers
+namespace Asana.WebUI.Controllers.V1
 {
     [Authorize]
+    [ApiVersion("1.0")]
     public class AuthController : ApiControllerBase
     {
-        private readonly IIdentityService _IdentityService;
+        private readonly IIdentityService _identityService;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(IIdentityService identityService, ILogger<AuthController> logger)
         {
-            _IdentityService = identityService;
+            _identityService = identityService;
             _logger = logger;
         }
 
@@ -37,7 +38,7 @@ namespace Asana.WebUI.Controllers
                 return JsonResponseStatus.NotFound(errorList);
             }
 
-            var result = await _IdentityService.RegisterAsync(userRegister);
+            var result = await _identityService.RegisterAsync(userRegister);
 
 
             return result.Succeeded ? JsonResponseStatus.Success()
@@ -53,7 +54,7 @@ namespace Asana.WebUI.Controllers
                 return BadRequest();
             }
 
-            var result = await _IdentityService.ConfirmEmailAsync(token, userId);
+            var result = await _identityService.ConfirmEmailAsync(token, userId);
 
             return result.Succeeded ? JsonResponseStatus.Success()
                 : JsonResponseStatus.BadRequest(result.Errors);
@@ -72,7 +73,7 @@ namespace Asana.WebUI.Controllers
                 JsonResponseStatus.BadRequest(errorList);
             }
 
-            var result = await _IdentityService.LoginAsync(userLogin);
+            var result = await _identityService.LoginAsync(userLogin);
 
             return result.Succeeded ?
                 JsonResponseStatus.Success(result.Value)
@@ -86,7 +87,7 @@ namespace Asana.WebUI.Controllers
             if (User.Identity == null || !User.Identity.IsAuthenticated) return JsonResponseStatus.Unauthorized();
             
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Result result = await _IdentityService.GetUserByIdAsync(userId);
+            Result result = await _identityService.GetUserByIdAsync(userId);
             return JsonResponseStatus.Success(result.Value);
         }
 
@@ -103,7 +104,7 @@ namespace Asana.WebUI.Controllers
                 return JsonResponseStatus.BadRequest(new string[] { "REQUEST_NOT_VALID" });
             }
 
-            var result = await _IdentityService.ForgotPasswordAsync(data.Email);
+            var result = await _identityService.ForgotPasswordAsync(data.Email);
 
             return result.Succeeded ?
                 JsonResponseStatus.Success() : JsonResponseStatus.BadRequest(result.Errors);
@@ -120,7 +121,7 @@ namespace Asana.WebUI.Controllers
             {
                 return JsonResponseStatus.BadRequest(new string[] { "REQUEST_NOT_VALID" });
             }
-            var result = await _IdentityService.ResetPasswordAsync(passwordDto);
+            var result = await _identityService.ResetPasswordAsync(passwordDto);
 
             return result.Succeeded ?
                  JsonResponseStatus.Success() : JsonResponseStatus.BadRequest(result.Errors);
@@ -130,7 +131,7 @@ namespace Asana.WebUI.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto tokenRequestDto)
         {
-          var result = await _IdentityService
+          var result = await _identityService
                 .RefreshTokenAsync(tokenRequestDto.AccessToken, tokenRequestDto.RefreshToken);
 
             return result.Succeeded ? JsonResponseStatus.Success(result.Value) :

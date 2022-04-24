@@ -1,16 +1,17 @@
-﻿using Asana.Application.Common.Interfaces;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Asana.Application.Common.Interfaces;
 using Asana.Application.Common.Validations;
 using Asana.Application.DTOs;
 using Asana.Application.Utilities.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Asana.WebUI.Controllers
+namespace Asana.WebUI.Controllers.V1
 {
     [Authorize]
+    [ApiVersion("1.0")]
     public class ProfileController : ApiControllerBase
     {
         private readonly IIdentityService _identityService;

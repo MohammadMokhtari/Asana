@@ -26,19 +26,16 @@ namespace Asana.Infrastructure.Identity
     {
         private readonly BearerTokensOptions _bearerConfiguration;
         private readonly ISecurityService _securityService;
-        private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly IGenericRepository<RefreshToken> _tokenRepository;
 
 
         public TokenService(
             IOptionsSnapshot<BearerTokensOptions> bearerConfiguration,
             ISecurityService securityService,
-            TokenValidationParameters tokenValidationParameters,
             IGenericRepository<RefreshToken> tokenRepository)
         {
             _bearerConfiguration = bearerConfiguration.Value;
             _securityService = securityService;
-            _tokenValidationParameters = tokenValidationParameters;
             _tokenRepository = tokenRepository;
         }
 
@@ -105,16 +102,28 @@ namespace Asana.Infrastructure.Identity
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
+            var tokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateIssuer = false,
+                ValidateLifetime = false,
+                ValidateIssuerSigningKey = true,
+                ValidateAudience = false,
+                ValidAudience = _bearerConfiguration.Audience,
+                ValidIssuer = _bearerConfiguration.Issuer,
+                IssuerSigningKey =
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_bearerConfiguration.Key)),
+            };
+
             try
             {
-                var principal = tokenHandler.ValidateToken(token, _tokenValidationParameters, out var validateToken);
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validateToken);
                 if (!IsJwtWithValidSecurityAlgoritjm(validateToken))
                 {
                     return null;
                 }
                 return principal;
             }
-            catch
+            catch(Exception ex)
             {
                 return null;
             }
