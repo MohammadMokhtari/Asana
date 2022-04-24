@@ -240,7 +240,7 @@ namespace Asana.Application.Common.Services
                     var addressInitialCreateDto = new CreateInitAddressDto()
                     {
                         Cities = cityDtos,
-                        Provincs = provinceDtos
+                        Provinces = provinceDtos
                     };
 
                     var chachOptions = new MemoryCacheEntryOptions()

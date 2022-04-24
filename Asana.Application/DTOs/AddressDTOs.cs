@@ -20,7 +20,7 @@ namespace Asana.Application.DTOs
 
         public string CityName { get; set; }
 
-        public string StateName { get; set; }
+        public string ProvinceName { get; set; }
 
         public string RecipientFirstName { get; set; }
 
@@ -30,7 +30,7 @@ namespace Asana.Application.DTOs
 
         public string RecipientPhoneNumber { get; set; }
 
-        public string FullAddress { get => $"{StateName} - {CityName} - {AddressLine} - پلاک {NumberPlate}";}
+        public string FullAddress { get => $"{ProvinceName} - {CityName} - {AddressLine} - پلاک {NumberPlate}";}
     }
 
     public class AddressCreateDto
@@ -85,7 +85,7 @@ namespace Asana.Application.DTOs
     
     public class CreateInitAddressDto 
     {
-        public IEnumerable<ProvinceDto> Provincs { get; set; }
+        public IEnumerable<ProvinceDto> Provinces { get; set; }
 
         public IEnumerable<CityDto> Cities { get; set; }
     }
