@@ -71,7 +71,7 @@ namespace Asana.Application.DTOs
 
         public string CityName { get; set; }
 
-        public string StateName { get; set; }
+        public string ProvinceName { get; set; }
 
         public string RecipientFirstName { get; set; }
 
