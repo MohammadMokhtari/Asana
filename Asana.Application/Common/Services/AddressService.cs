@@ -170,7 +170,7 @@ namespace Asana.Application.Common.Services
                     .SetSlidingExpiration(TimeSpan.FromHours(12))
                     .SetSlidingExpiration(TimeSpan.FromDays(1));
 
-                _memoryCache.Set(provincesCacheKey, provinceDtos);
+                _memoryCache.Set(provincesCacheKey, provinceDtos, cahceOptions);
                 _logger.LogInformation("Set AllProvince to MemoryCache has successful");
 
                 _logger.LogInformation("Get AllProvince to be successful");
@@ -205,7 +205,7 @@ namespace Asana.Application.Common.Services
                     .SetSlidingExpiration(TimeSpan.FromHours(12))
                     .SetAbsoluteExpiration(TimeSpan.FromDays(1));
 
-                _memoryCache.Set(citiesCacheKey, cityDtos);
+                _memoryCache.Set(citiesCacheKey, cityDtos, cacheOptions);
                 _logger.LogInformation("Set AllCities to MemoryCache has successful");
 
                 _logger.LogInformation("Get AllCities to be successful");
@@ -247,7 +247,7 @@ namespace Asana.Application.Common.Services
                    .SetSlidingExpiration(TimeSpan.FromHours(12))
                    .SetAbsoluteExpiration(TimeSpan.FromDays(1));
 
-                    _memoryCache.Set(initCreatedAddressCacheKey, addressInitialCreateDto);
+                    _memoryCache.Set(initCreatedAddressCacheKey, addressInitialCreateDto, chachOptions);
 
                     _logger.LogInformation("InitCreatedAddress to be successful");
 
@@ -282,7 +282,7 @@ namespace Asana.Application.Common.Services
 
                 address.AddressLine = addressDto.AddressLine;
                 address.CityName = addressDto.CityName;
-                address.ProvinceName = address.ProvinceName;
+                address.ProvinceName = addressDto.ProvinceName;
                 address.UnitNumber = addressDto.UnitNumber;
                 address.PostalCode = addressDto.PostalCode;
                 address.NumberPlate = addressDto.NumberPlate;

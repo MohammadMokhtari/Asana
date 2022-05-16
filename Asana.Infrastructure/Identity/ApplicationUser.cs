@@ -1,5 +1,6 @@
 ﻿using Asana.Domain.Entities.Addresses;
 using Asana.Domain.Entities.Media;
+using Asana.Domain.Entities.Products;
 using Asana.Domain.Entities.Token;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -44,6 +45,8 @@ namespace Asana.Infrastructure.Identity
         public UserMediaFile MediaFile { get; set; }
 
         public ICollection<RefreshToken> RefreshToken { get; set; }
+
+        public ICollection<ProductReview> Reviews { get; set; }
 
         #endregion
     }
