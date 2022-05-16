@@ -14,13 +14,21 @@ namespace Asana.Application.Common.Services
             return $"https://{_hostService.HostName}/media/images/profile/blank.jpg";
         }
 
+        public string BuildAbsolutMediaFilePhotoUrl(string folderPath, string fileName)
+        {
+            if (folderPath is null && fileName is null)
+                return null;
+
+            return $"https://{_hostService.HostName}/{folderPath}/{fileName}";
+        }
 
         public string BuildAbsolutProfilePhotoUrl(UserMediaFile file)
         {
             if (file is null)
                 return BlankProfilePhotoUrl();
 
-            return $"https://{_hostService.HostName}{file.FolderPath}/Thumbnail{file.MediaName}";
+            return $"https://{_hostService.HostName}/{file.FolderPath}/Thumbnail{file.MediaName}";
         }
+
     }
 }
