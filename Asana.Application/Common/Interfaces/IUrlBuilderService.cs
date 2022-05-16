@@ -7,5 +7,8 @@ namespace Asana.Application.Common.Interfaces
         string BuildAbsolutProfilePhotoUrl(UserMediaFile file);
 
         string BlankProfilePhotoUrl();
+
+        string BuildAbsolutMediaFilePhotoUrl(string folderPath ,string fileName);
+
     }
 }
