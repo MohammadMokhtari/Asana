@@ -144,7 +144,7 @@ namespace Asana.WebUI.Controllers.V1
             var result = await _identityService
                   .RevokeTokenAsync(refreshTokenRevokeDto.RefreshToken);
 
-            return result.Succeeded ? JsonResponseStatus.Success(result.Value) :
+            return result.Succeeded ? JsonResponseStatus.Success() :
                 JsonResponseStatus.BadRequest(result.Errors);
         }
     }
