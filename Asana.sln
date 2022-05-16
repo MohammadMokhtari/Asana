@@ -3,9 +3,53 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32106.194
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{CB5E9184-B71B-48FE-9953-519FD77D1C75}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{8A258F9E-FB60-4EF7-8E3E-07E96F265FCB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{2EDF8482-ECDF-4D0D-B7AD-93EDE9133471}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{13C03151-6EF1-4550-B264-DC7C5A2CCD42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asana.Application", "Asana.Application\Asana.Application.csproj", "{5A9293EF-73EB-48B2-8A32-2B711C62BCD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asana.Domain", "Asana.Domain\Asana.Domain.csproj", "{77A6A339-C79F-4FFE-83DB-9F92996FD9B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asana.Infrastructure", "Asana.Infrastructure\Asana.Infrastructure.csproj", "{6E84557C-82D2-41AF-A7CF-5E6E3F834146}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asana.WebUI", "Asana.WebUI\Asana.WebUI.csproj", "{BB249A2E-12C8-4C74-9608-A58AAC2DEDE7}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A9293EF-73EB-48B2-8A32-2B711C62BCD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A9293EF-73EB-48B2-8A32-2B711C62BCD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A9293EF-73EB-48B2-8A32-2B711C62BCD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A9293EF-73EB-48B2-8A32-2B711C62BCD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77A6A339-C79F-4FFE-83DB-9F92996FD9B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77A6A339-C79F-4FFE-83DB-9F92996FD9B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77A6A339-C79F-4FFE-83DB-9F92996FD9B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77A6A339-C79F-4FFE-83DB-9F92996FD9B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E84557C-82D2-41AF-A7CF-5E6E3F834146}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E84557C-82D2-41AF-A7CF-5E6E3F834146}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E84557C-82D2-41AF-A7CF-5E6E3F834146}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E84557C-82D2-41AF-A7CF-5E6E3F834146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB249A2E-12C8-4C74-9608-A58AAC2DEDE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB249A2E-12C8-4C74-9608-A58AAC2DEDE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB249A2E-12C8-4C74-9608-A58AAC2DEDE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB249A2E-12C8-4C74-9608-A58AAC2DEDE7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5A9293EF-73EB-48B2-8A32-2B711C62BCD9} = {CB5E9184-B71B-48FE-9953-519FD77D1C75}
+		{77A6A339-C79F-4FFE-83DB-9F92996FD9B1} = {8A258F9E-FB60-4EF7-8E3E-07E96F265FCB}
+		{6E84557C-82D2-41AF-A7CF-5E6E3F834146} = {2EDF8482-ECDF-4D0D-B7AD-93EDE9133471}
+		{BB249A2E-12C8-4C74-9608-A58AAC2DEDE7} = {13C03151-6EF1-4550-B264-DC7C5A2CCD42}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4BC2978D-DF09-4E4A-954F-A016387F72E2}
