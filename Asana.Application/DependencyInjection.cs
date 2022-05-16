@@ -22,6 +22,7 @@ namespace Asana.Application
             services.AddScoped<IAddressService, AddressService>();
             services.AddScoped<IUserMediaFileService, UserMediaFileService>();
             services.AddSingleton<IUrlBuilderService,UrlBuilderService>();
+            services.AddScoped<ICategoryService, CategoryService>();
 
             services.AddMemoryCache();
 
